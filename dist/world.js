@@ -1,0 +1,35 @@
+// World coordinates stay constant at every viewport size; physics uses seconds.
+const world = {w:960,h:720,x:480,y:360,face:1,step:0,keys:new Set(),near:-1};
+const buildings=[{x:65,y:105,w:200,h:130},{x:380,y:105,w:200,h:130},{x:695,y:105,w:200,h:130},{x:65,y:430,w:200,h:130},{x:695,y:430,w:200,h:130},{x:395,y:585,w:170,h:105}];
+const scene=$('scene'); const home=$('home');home.hidden=true;document.body.append(home);
+scene.innerHTML='<canvas id="world" width="960" height="720" tabindex="0" aria-label="Khu chợ 2D. Dùng WASD hoặc mũi tên di chuyển, Shift chạy nhanh, E tương tác."></canvas><div class="world-hint" id="worldHint" aria-live="polite">WASD / ↑↓←→ để đi · Shift để chạy</div>';
+scene.insertAdjacentHTML('afterend','<div class="game-controls"><div class="dpad"><button data-key="arrowup" aria-label="Đi lên">▲</button><button data-key="arrowleft" aria-label="Đi trái">◀</button><button data-key="arrowdown" aria-label="Đi xuống">▼</button><button data-key="arrowright" aria-label="Đi phải">▶</button></div><span>Giữ phím để di chuyển<br>Đến gần sạp để nói chuyện</span><button class="run-button" data-key="shift">Chạy</button><button id="interact" disabled>E · Tương tác</button></div>');
+const canvas=$('world'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+window.resetWorld=()=>{world.x=480;world.y=360;world.keys.clear();world.face=1;world.step=0;};
+function distance(b,x=world.x,y=world.y){return Math.hypot(Math.max(b.x-x,0,x-b.x-b.w),Math.max(b.y-y,0,y-b.y-b.h));}
+window.nearShop=i=>distance(buildings[i])<65;
+function interaction(){if($('shop').open)return;if(world.near===5)home.click();else if(world.near>=0)visit(world.near);else toast('Đến gần sạp hàng hoặc nhà để tương tác nha!');world.keys.clear();}
+$('interact').onclick=interaction;
+const moves=['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift'];
+window.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const k=e.key.toLowerCase();if($('shop').open)return;if(moves.includes(k)){e.preventDefault();world.keys.add(k);}if(k==='e'&&!e.repeat){e.preventDefault();interaction();}});
+window.addEventListener('keyup',e=>world.keys.delete(e.key.toLowerCase()));
+function clearInput(){world.keys.clear();}window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',clearInput);
+document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);world.keys.add(b.dataset.key);});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>world.keys.delete(b.dataset.key));});
+function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h);}
+function text(t,x,y,size=18,color='#36533d'){ctx.fillStyle=color;ctx.font=`600 ${size}px "Be Vietnam Pro",sans-serif`;ctx.textAlign='center';ctx.fillText(t,x,y);}
+function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();}
+function tree(x,y){ellipse(x,y+45,35,10,'#345d3922');rect(x-7,y,14,45,'#947353');ellipse(x-17,y,26,28,'#608952');ellipse(x+16,y-8,29,31,'#739957');ellipse(x,y-25,27,26,'#87a661');}
+function person(x,y,color,walking=false,face=1,scale=1){ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(scale,scale);ellipse(0,1,15,5,'#344b3c33');let stride=walking?Math.sin(world.step)*5:0;rect(-10,-16,8,15+stride,'#334d60');rect(2,-16,8,15-stride,'#334d60');rect(-11,-3+stride,10,5,'#493e36');rect(2,-3-stride,10,5,'#493e36');rect(-12,-37,24,24,color);rect(-18,-34+stride,6,19,'#e7af7d');rect(12,-34-stride,6,19,'#e7af7d');rect(-11,-56,22,23,'#edbb8a');rect(-13,-58,26,8,'#493c31');rect(-13,-50,5,10,'#493c31');if(face!==0){rect(face===2?-8:3,-46,4,4,'#393b31');}else rect(-11,-53,22,14,'#493c31');rect(-17,-59,34,4,'#cfaa62');rect(-10,-67,20,8,'#e4c382');ctx.restore();}
+let last=0;
+function tick(now){const dt=Math.min((now-last)/1000||0,.035);last=now;let dx=0,dy=0;const held=k=>world.keys.has(k);if(!$('shop').open&&!state.ended){dx=Number(held('d')||held('arrowright'))-Number(held('a')||held('arrowleft'));dy=Number(held('s')||held('arrowdown'))-Number(held('w')||held('arrowup'));}else clearInput();const moving=dx!==0||dy!==0;if(moving){const speed=(held('shift')?260:155)*dt/Math.hypot(dx,dy);let nx=world.x+dx*speed,ny=world.y+dy*speed;const free=(x,y)=>x>20&&x<940&&y>65&&y<705&&buildings.every(b=>distance(b,x,y)>13);if(free(nx,world.y))world.x=nx;if(free(world.x,ny))world.y=ny;world.face=dx<0?2:dx>0?3:dy<0?0:1;world.step+=dt*(held('shift')?19:12);}
+let nearest=-1,best=65;buildings.forEach((b,i)=>{const d=distance(b);if(d<best){best=d;nearest=i;}});if(world.near!==nearest){world.near=nearest;$('interact').disabled=nearest<0;$('interact').textContent=nearest===5?'E · Về nhà':nearest>=0?'E · Mua hàng':'E · Tương tác';$('worldHint').textContent=nearest===5?'E · Về nhà với má':nearest>=0?'E · Nói chuyện với '+stalls[nearest].name:'WASD / ↑↓←→ để đi · Shift để chạy';}
+draw(moving);requestAnimationFrame(tick);}
+function draw(moving){rect(0,0,960,720,'#b8cf91');for(let y=0;y<720;y+=24)for(let x=0;x<960;x+=28){rect(x+7,y+9,3,4,'#a9c080');}rect(280,55,400,665,'#e6d3a3');rect(20,255,920,155,'#e6d3a3');rect(275,55,5,665,'#d6c38e');rect(680,55,5,665,'#d6c38e');for(let y=275;y<410;y+=34)for(let x=35;x<940;x+=49)rect(x,y,13,2,'#d6c495');
+tree(30,70);tree(927,70);tree(320,500);tree(635,510);tree(32,635);tree(915,650);
+rect(350,18,260,44,'#4c7251');text('CHỢ BÌNH AN',480,47,23,'#fff4d2');text('✦  MUA ĐỦ ĐỒ RỒI VỀ VỚI MÁ  ✦',480,86,12,'#5d7850');
+buildings.forEach((b,i)=>{if(i===world.near){ctx.strokeStyle='#fff5b3';ctx.lineWidth=5;ctx.strokeRect(b.x-7,b.y-7,b.w+14,b.h+14);}ellipse(b.x+b.w/2,b.y+b.h+5,b.w/2+5,13,'#42553422');if(i===5){rect(b.x,b.y,b.w,b.h,'#e9c68e');rect(b.x-10,b.y-10,b.w+20,30,'#b9694f');rect(b.x+64,b.y+40,42,65,'#725b43');rect(b.x+14,b.y+44,32,29,'#719f9b');rect(b.x+124,b.y+44,32,29,'#719f9b');text('NHÀ CỦA MÁ',b.x+b.w/2,b.y+22,13,'#fff8dd');return;}const s=stalls[i];rect(b.x,b.y,b.w,b.h,'#b28b5c');rect(b.x+8,b.y+10,b.w-16,b.h-19,'#f2dfad');person(b.x+b.w/2,b.y+86,['#789c91','#ad7c92','#bb8260','#8b94aa','#9aab76'][i],false,1,.8);rect(b.x-5,b.y,b.w+10,33,'#fff1cc');for(let x=0;x<b.w+10;x+=40)rect(b.x-5+x,b.y,20,33,s.color);rect(b.x+6,b.y+86,b.w-12,37,'#d7af76');text(s.goods,b.x+b.w/2,b.y+112,29);rect(b.x-5,b.y-25,b.w+10,25,'#fff0ce');text(s.name,b.x+b.w/2,b.y-7,13);text(s.item,b.x+b.w/2,b.y+b.h+24,13);});
+// Other shoppers stay off the collision lanes.
+person(145,330,'#b98ca0',false,3);person(825,345,'#759fa0',false,2);text('Chào con!',145,253,12);text('Rau tươi đây!',825,268,12);
+person(world.x,world.y,'#cf654b',moving,world.face);ellipse(world.x+21,world.y-18,9,10,'#b58a48');text('CON CỦA MÁ',world.x,world.y+23,10,'#3c5941');
+}
+requestAnimationFrame(tick);
