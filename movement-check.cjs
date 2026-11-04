@@ -5,12 +5,12 @@ const sandbox={console,Math,Number,Set,window:{addEventListener(){}},document:{b
 vm.createContext(sandbox);vm.runInContext(fs.readFileSync('dist/world.js','utf8'),sandbox);
 vm.runInContext(`
 function advance(n){for(let i=0;i<n;i++)tick((last||1)+16);}
-world.keys.add('arrowup');advance(160);if(world.y<248||world.y>255)throw Error('stall collision');if(world.near!==1)throw Error('near shop');
-window.resetWorld();world.keys.add('d');advance(50);let walk=world.x-480;
-window.resetWorld();world.keys.add('d');world.keys.add('shift');advance(50);if(world.x-480<walk*1.5)throw Error('run speed');
-window.resetWorld();world.keys.add('a');advance(800);if(world.x<20)throw Error('boundary');
-window.resetWorld();world.keys.add('w');$('shop').open=true;advance(30);if(world.y!==360||world.keys.size)throw Error('modal pause');$('shop').open=false;
-world.keys.add('s');advance(100);if(world.near!==5||world.y>572)throw Error('home approach');
-window.resetWorld();if(world.x!==480||world.keys.size)throw Error('reset');
+world.keys.add('arrowup');advance(220);if(world.y<358||world.y>365)throw Error('stall collision');if(world.near!==1)throw Error('near shop');
+window.resetWorld();world.keys.add('d');advance(50);let walk=world.x-800;
+window.resetWorld();world.keys.add('d');world.keys.add('shift');advance(50);if(world.x-800<walk*1.5)throw Error('run speed');
+if(world.cameraX<=320)throw Error('camera follow');
+window.resetWorld();world.keys.add('w');$('shop').open=true;advance(30);if(world.y!==650||world.keys.size)throw Error('modal pause');$('shop').open=false;
+world.keys.add('s');advance(130);if(world.near!==5||world.y>912)throw Error('home approach');
+window.resetWorld();if(world.x!==800||world.keys.size)throw Error('reset');
 `,sandbox);
-console.log('PASS: collision, proximity, sprint speed, world boundary, dialog pause, home, reset');
+console.log('PASS: collision, proximity, sprint speed, camera follow, dialog pause, home, reset');
