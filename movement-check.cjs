@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const elements={}; const ctx=new Proxy({}, {get:()=>()=>{},set:()=>true});
 const element=id=>elements[id]??=( {width:960,height:720,style:{},open:false,append(){},insertAdjacentHTML(){},addEventListener(){},getContext:()=>ctx} );
 const sandbox={console,Math,Number,Set,window:{addEventListener(){}},document:{body:{append(){}},querySelectorAll:()=>[],addEventListener(){}},$:element,state:{ended:false},stalls:Array.from({length:5},(_,i)=>({name:'s'+i,goods:'',item:'',color:''})),requestAnimationFrame(){},toast(){},visit(){}};
-vm.createContext(sandbox);vm.runInContext(fs.readFileSync('dist/world.js','utf8'),sandbox);
+vm.createContext(sandbox);vm.runInContext(fs.readFileSync('public/world.js','utf8'),sandbox);
 vm.runInContext(`
 function advance(n){for(let i=0;i<n;i++)tick((last||1)+16);}
 world.keys.add('arrowup');advance(220);if(world.y<498||world.y>505)throw Error('stall collision');if(world.near!==1)throw Error('near shop');
