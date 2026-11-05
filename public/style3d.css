@@ -8,3 +8,10 @@
 #viewAll{font-size:9px;width:100%;border:0;border-top:1px solid #e0e4cf;border-radius:0;padding:8px;background:#edf1e0;color:#738b63}@media(max-width:650px){#viewAll{font-size:8px;padding:7px 4px}}
 #lifeHud{position:absolute;left:24px;bottom:165px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#fff9e9d9;border:1px solid #dce2ca;border-radius:10px;padding:8px 10px;max-width:320px;font-size:9px;color:#829574;backdrop-filter:blur(8px)}#lifeHud>span{flex-basis:100%;font-size:8px;letter-spacing:.5px}#lifeHud button{font-size:8px;padding:6px 8px;background:#f2f4e5;border:1px solid #dbe4c8}@media(max-width:650px){#lifeHud{left:12px;bottom:241px;padding:7px;max-width:140px;gap:5px}#lifeHud>span{font-size:7px}#lifeHud button{font-size:7px;padding:5px 6px}}
 .business-stats{flex-wrap:wrap}
+
+
+#vehicleBtn{background:#e67e22;color:#fff;border-color:#d35400;font-weight:700;display:none;min-width:145px;padding:15px 18px;box-shadow:0 4px 0 #b03a2e;font-size:11px}
+#vehicleBtn.active{display:inline-block}
+#timeOfDayBtn{font-size:9px;background:#f39c12;color:#fff;border-color:#d68910;padding:6px 10px;border-radius:8px}
+#buffBar{position:fixed;top:84px;left:210px;display:flex;gap:8px;z-index:3;pointer-events:none}
+.buff-pill{background:#fff9e9f2;border:1px solid #d5c898;border-radius:20px;padding:6px 14px;font-size:10px;font-weight:700;color:#27ae60;box-shadow:0 3px 12px #00000015;backdrop-filter:blur(8px);display:flex;align-items:center;gap:6px}

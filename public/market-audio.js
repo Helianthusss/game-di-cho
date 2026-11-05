@@ -78,5 +78,48 @@ export function createMarketAudio(){
  document.addEventListener('visibilitychange',()=>{
   if(context)master.gain.setTargetAtTime(document.hidden||!on?0:.04,context.currentTime,.2);
  });
- return {start,stop,get on(){return on;}};
+ 
+ let engineOsc, engineGain, isEngineRunning=false;
+ function startEngine(){
+  if(!context || !on || isEngineRunning) return;
+  try {
+   isEngineRunning=true;
+   engineOsc=context.createOscillator();
+   engineGain=context.createGain();
+   engineOsc.type='sawtooth';
+   engineOsc.frequency.setValueAtTime(55,context.currentTime);
+   const filter=context.createBiquadFilter();
+   filter.type='lowpass';
+   filter.frequency.setValueAtTime(190,context.currentTime);
+   engineGain.gain.setValueAtTime(0.025,context.currentTime);
+   engineOsc.connect(filter);
+   filter.connect(engineGain);
+   engineGain.connect(master);
+   engineOsc.start();
+  } catch(e){}
+ }
+ function throttleEngine(moving){
+  if(!engineOsc || !context || !isEngineRunning) return;
+  const targetFreq=moving?95:55;
+  engineOsc.frequency.setTargetAtTime(targetFreq,context.currentTime,0.1);
+  engineGain.gain.setTargetAtTime(moving?0.045:0.025,context.currentTime,0.1);
+ }
+ function stopEngine(){
+  if(engineOsc){
+   try { engineOsc.stop(); } catch(e){}
+   engineOsc=null;
+  }
+  isEngineRunning=false;
+ }
+ function horn(){
+  if(!context || !on) return;
+  const osc=context.createOscillator(), g=context.createGain();
+  osc.type='triangle'; osc.frequency.value=440;
+  g.gain.setValueAtTime(0.08,context.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,context.currentTime+0.35);
+  osc.connect(g); g.connect(master);
+  osc.start(); osc.stop(context.currentTime+0.38);
+ }
+
+ return {start,stop,startEngine,throttleEngine,stopEngine,horn,get on(){return on;}};
 }

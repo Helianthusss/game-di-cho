@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id),host=$('scene');
 const locations=[{x:320,y:330,w:240,h:155},{x:680,y:330,w:240,h:155},{x:1040,y:330,w:240,h:155},{x:350,y:750,w:240,h:155},{x:1040,y:750,w:240,h:155},{x:710,y:925,w:180,h:130},{x:1280,y:930,w:180,h:120},{x:3150,y:3180,w:300,h:100}];
 const world=window.world;const home=$('home');home.hidden=true;document.body.append(home);
 host.innerHTML='<div id="loading3d"><strong>CHỢ BÌNH AN</strong><span>Đang mở cửa chợ…</span></div><canvas id="world" tabindex="0" aria-label="Chợ Việt Nam 3D. WASD để đi, kéo chuột để xoay, cuộn để phóng, E tương tác."></canvas><div class="world-hint" id="worldHint">Đi đến sạp để nói chuyện</div><div id="placeLabel">CHỢ BÌNH AN <small>07:15 · Một buổi sáng quen</small></div><div id="compass"><b>✦</b> <span id="destinationHint">Khám phá khu chợ</span></div>';
-host.insertAdjacentHTML('afterend','<div class="game-controls"><div class="dpad"><button data-key="arrowup" aria-label="Đi lên">▲</button><button data-key="arrowleft" aria-label="Đi trái">◀</button><button data-key="arrowdown" aria-label="Đi xuống">▼</button><button data-key="arrowright" aria-label="Đi phải">▶</button></div><div class="control-help"><kbd>Bấm để đi <span>·</span> <kbd>W A S D</kbd> <span>·</span> Kéo để xoay <span>·</span> Cuộn để phóng</div><button data-key="shift" class="run-button">Chạy</button><button id="interact" disabled><kbd>E</kbd> Đến gần sạp</button><button id="cameraReset" aria-label="Đặt lại góc nhìn">↻ Góc nhìn</button></div>');
+host.insertAdjacentHTML('afterend','<div class="game-controls"><div class="dpad"><button data-key="arrowup" aria-label="Đi lên">▲</button><button data-key="arrowleft" aria-label="Đi trái">◀</button><button data-key="arrowdown" aria-label="Đi xuống">▼</button><button data-key="arrowright" aria-label="Đi phải">▶</button></div><div class="control-help"><kbd>Bấm để đi <span>·</span> <kbd>W A S D</kbd> <span>·</span> Kéo để xoay <span>·</span> Cuộn để phóng</div><button data-key="shift" class="run-button">Chạy</button><button id="vehicleBtn">🛵 Lên xe</button><button id="interact" disabled><kbd>E</kbd> Đến gần sạp</button><button id="cameraReset" aria-label="Đặt lại góc nhìn">↻ Góc nhìn</button></div>');
 let renderer;
 try{renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,powerPreference:'high-performance'});}catch{ $('loading3d').innerHTML='<strong>Chưa mở được cảnh 3D</strong><span>Trình duyệt cần WebGL. Thử bật tăng tốc đồ họa hoặc dùng trình duyệt khác.</span>';throw Error('WebGL unavailable');}
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
@@ -265,7 +265,7 @@ for(let i=0;i<7;i++){
   label(g,['TIỆM THUỐC TÂY','NƯỚC MÍA','TẠP HÓA 77','BÁNH MÌ PÂTÉ','CÀ PHÊ PHIN','QUẦY TRÁI CÂY','ĐỒ GIA DỤNG'][i%7],0,2.85,2.15,4);
 }
 
-baGac(scene,toX(1450),toZ(700),-Math.PI/3,'#326f94');deliveryCub(scene,toX(350),toZ(520),Math.PI/4,'#4a7567');
+const playerVehicle=baGac(scene,toX(1450),toZ(700),-Math.PI/3,'#326f94');const drivable={x:1450,y:700,yaw:-Math.PI/3,mounted:false,mesh:playerVehicle};deliveryCub(scene,toX(350),toZ(520),Math.PI/4,'#4a7567');
 for(const [x,z,c] of [[-16,5,'#b96b53'],[16,-1,'#75998b']]){umbrella(scene,x,z,c);stool(scene,x-.9,z+1);stool(scene,x+.9,z+1.3,'#538d86');cyl(scene,.7,.12,'#a8b6a5',x,1.1,z+1.4);cyl(scene,.12,1,'#a8b6a5',x,.55,z+1.4);basket(scene,x,1.3,z+1.4,2);}
 for(let i=0;i<4;i++)scooter(-17+i*1.8,11,['#6c9492','#bf7861','#e1c59a'][i%3]);
 for(const [x,z] of [[-19,-7],[19,-7],[-18,10],[18,11],[-5,7],[5,7]]){cyl(scene,.17,2.8,'#8e7955',x,1.4,z);for(let j=0;j<3;j++){const leaf=sphere(scene,1.05,['#7fa472','#8eac76','#6c966c'][j],x+(j-1)*.5,3+j*.4,z);leaf.scale.y=.8;}cyl(scene,.6,.55,'#b28057',x,.25,z);}
@@ -274,14 +274,96 @@ const district=buildWholesaleDistrict({scene,box,cyl,sphere,label,person,mat,toX
 const avatar=person('#c57c5d');scene.add(avatar);const myBasket=new THREE.Group();basket(myBasket,0,.1,0,0);myBasket.scale.set(.65,.65,.65);myBasket.position.set(.55,.55,.05);avatar.add(myBasket);
 const peers=new Map();let lastPeersCheck=0;
 const marker=new THREE.Group();const ring=new THREE.Mesh(new THREE.TorusGeometry(.62,.07,6,28),new THREE.MeshBasicMaterial({color:'#ecc977'}));ring.rotation.x=Math.PI/2;marker.add(ring);const pin=mesh(marker,'ConeGeometry',[.18,.42,5],'#e7bd69',0,1.1,0);pin.rotation.z=Math.PI;scene.add(marker);
-const navigator=createNavigator([...locations,...district.obstacles]);const marketLife=buildMarketLife({scene,box,cyl,person,floatingLabel,animatePerson,navigator,toX,toZ,world,district});const marketAudio=createMarketAudio();host.insertAdjacentHTML('beforeend','<div id="lifeHud"><span id="marketPulse">Nhịp chợ</span><button id="crowdMode">Khách: '+(marketLife.density==='busy'?'Nhộn nhịp':'Nhẹ máy')+'</button><button id="soundMode">Âm thanh: Tắt</button></div>');$('crowdMode').onclick=()=>{marketLife.setDensity(marketLife.density==='busy'?'light':'busy');$('crowdMode').textContent='Khách: '+(marketLife.density==='busy'?'Nhộn nhịp':'Nhẹ máy');};$('soundMode').onclick=async()=>{try{if(marketAudio.on)marketAudio.stop();else await marketAudio.start();$('soundMode').textContent='Âm thanh: '+(marketAudio.on?'Bật':'Tắt');}catch(e){window.dispatchEvent(new CustomEvent('market-toast',{detail:e.message}));}};let walkPath=[];const clickRing=new THREE.Mesh(new THREE.RingGeometry(.32,.43,32),new THREE.MeshBasicMaterial({color:'#f0cd78',side:THREE.DoubleSide,transparent:true,opacity:.9}));clickRing.rotation.x=-Math.PI/2;clickRing.visible=false;scene.add(clickRing);
+const navigator=createNavigator([...locations,...district.obstacles]);const marketLife=buildMarketLife({scene,box,cyl,person,floatingLabel,animatePerson,navigator,toX,toZ,world,district});const marketAudio=createMarketAudio();
+const timePresets=[
+  {label:'☀️ 07:15 Sáng',sky:'#dbe7de',sun:'#fff0ce',int:3.4,hemi:'#ffefd1'},
+  {label:'🌞 12:00 Trưa',sky:'#c4e3f3',sun:'#ffffff',int:4.0,hemi:'#ffffff'},
+  {label:'🌙 19:00 Chợ Đêm',sky:'#17202a',sun:'#5dade2',int:1.1,hemi:'#283747'}
+];
+let timeIdx=0;
+function cycleTime(){
+  timeIdx=(timeIdx+1)%timePresets.length;
+  const p=timePresets[timeIdx];
+  scene.background.set(p.sky);
+  scene.fog.color.set(p.sky);
+  sun.color.set(p.sun);
+  sun.intensity=p.int;
+  $('timeOfDayBtn').textContent=p.label;
+  window.dispatchEvent(new CustomEvent('market-toast',{detail:'Đã đổi thời gian: '+p.label}));
+}
+
+host.insertAdjacentHTML('beforeend','<div id="lifeHud"><span id="marketPulse">Nhịp chợ</span><button id="timeOfDayBtn">☀️ 07:15 Sáng</button><button id="crowdMode">Khách: '+(marketLife.density==='busy'?'Nhộn nhịp':'Nhẹ máy')+'</button><button id="soundMode">Âm thanh: Tắt</button></div>');$('timeOfDayBtn').onclick=cycleTime;
+$('crowdMode').onclick=()=>{marketLife.setDensity(marketLife.density==='busy'?'light':'busy');$('crowdMode').textContent='Khách: '+(marketLife.density==='busy'?'Nhộn nhịp':'Nhẹ máy');};$('soundMode').onclick=async()=>{try{if(marketAudio.on)marketAudio.stop();else await marketAudio.start();$('soundMode').textContent='Âm thanh: '+(marketAudio.on?'Bật':'Tắt');}catch(e){window.dispatchEvent(new CustomEvent('market-toast',{detail:e.message}));}};let walkPath=[];const clickRing=new THREE.Mesh(new THREE.RingGeometry(.32,.43,32),new THREE.MeshBasicMaterial({color:'#f0cd78',side:THREE.DoubleSide,transparent:true,opacity:.9}));clickRing.rotation.x=-Math.PI/2;clickRing.visible=false;scene.add(clickRing);
 const keys=new Set();let near=-1;let last=0,time=0,drag=null;
 function clear(){keys.clear();}window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
 window.resetWorld=()=>{world.x=800;world.y=650;walkPath=[];clickRing.visible=false;clear();};window.nearShop=i=>distance(locations[i],world.x,world.y)<105;
 function distance(b,x,y){return Math.hypot(Math.max(b.x-x,0,x-b.x-b.w),Math.max(b.y-y,0,y-b.y-b.h));}
-function interact(){if($('shop').open)return;walkPath=[];clickRing.visible=false;clear();if(near===7){window.openHaul?.();return;}if(near===6){window.openBusinessAtStall?.();return;}if(near===5){home.click();return;}if(near>=0){if(window.tryDeliverAt?.(near))return;window.visit3d?.(near);}}
+
+let speedBoostUntil=0, banhMiBonus=0;
+const extraPlaces=[
+  {x:520,y:1180,w:90,h:90,name:'Xe Nước Mía Siêu Sạch',type:'food_nuocmia'},
+  {x:820,y:1180,w:90,h:90,name:'Tiệm Bánh Mì Sài Gòn',type:'food_banhmi'},
+  {x:1120,y:1180,w:90,h:90,name:'Quán Cà Phê Cóc & Trà Đá',type:'food_caphe'},
+  {x:2540,y:675,w:140,h:120,name:'Vựa Sỉ Rau Củ (Nhà Lồng A)',type:'wholesale_hall_a'},
+  {x:3700,y:675,w:140,h:120,name:'Vựa Sỉ Trái Cây (Nhà Lồng B)',type:'wholesale_hall_b'},
+  {x:2540,y:2000,w:140,h:120,name:'Vựa Sỉ Nông Sản Khô (Nhà Lồng C)',type:'wholesale_hall_c'},
+  {x:3700,y:2000,w:140,h:120,name:'Vựa Sỉ Hải Sản & Đóng Thùng (Nhà Lồng D)',type:'wholesale_hall_d'}
+];
+
+function openExtraPlace(place){
+  const content=$('dialogContent');
+  if(place.type==='food_nuocmia'){
+    content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC BÌNH AN</p><h2>🥤 Xe Nước Mía Siêu Sạch</h2><p class="vendor-quote">“Nước mía ép từ mía tươi nguyên cây, thêm trái tắc thơm lừng mát rượi giải nhiệt!”</p><div class="reward-row"><b>⚡ Tăng tốc độ chạy +60%</b><b>Hiệu lực 60 giây</b></div><div class="actions"><button class="primary" id="buyJuice">Uống 1 ly · 10K</button><button id="leaveFood">Để lát ghé</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyJuice').onclick=()=>{speedBoostUntil=time+60;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'⚡ Đã uống nước mía mát lạnh! Chạy nhanh hơn 60%!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+  }else if(place.type==='food_banhmi'){
+    content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC BÌNH AN</p><h2>🥖 Tiệm Bánh Mì Sài Gòn</h2><p class="vendor-quote">“Bánh mì nóng giòn đặc ruột, pa-tê gan béo ngậy, chả lụa thơm lừng ăn là nghiền!”</p><div class="reward-row"><b>🥪 No bụng ấm dạ</b><b>Thưởng thêm +25K khi giao đơn</b></div><div class="actions"><button class="primary" id="buyBanhMi">Mua ổ bánh mì · 15K</button><button id="leaveFood">Để lát ghé</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyBanhMi').onclick=()=>{banhMiBonus=3;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'🥖 Bánh mì giòn rụm! Nhận thêm tiền thưởng khi giao đơn!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+  }else if(place.type==='food_caphe'){
+    content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC BÌNH AN</p><h2>☕ Quán Cà Phê Cóc & Trà Đá</h2><p class="vendor-quote">“Cà phê đen đá pha phin nhỏ giọt tí tách, ngồi ngắm phố chợ buổi sáng.”</p><div class="reward-row"><b>👁️ Tinh anh & Sáng suốt</b><b>Dẫn đường tự động toàn bản đồ</b></div><div class="actions"><button class="primary" id="buyCoffee">Làm ly cà phê · 12K</button><button id="leaveFood">Để lát ghé</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyCoffee').onclick=()=>{$('shop').close();openMap();window.dispatchEvent(new CustomEvent('market-toast',{detail:'☕ Tỉnh táo hẳn ra! Mở bản đồ toàn cảnh chợ!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+  }else if(place.type.startsWith('wholesale_hall')){
+    content.innerHTML=`<p class="eyebrow">CHỢ ĐẦU MỐI BÌNH AN · KHU BÁN SỈ</p><h2>📦 ${place.name}</h2><p class="vendor-quote">“Khu tập kết nông sản các tỉnh miền Tây và Đà Lạt. Nhập sỉ giá gốc chở về sạp bán kiếm lời.”</p><div class="business-stats"><b>Lô sỉ 15 phần</b><b>Giá nhập chỉ 30K</b><b>Lãi x2 khi bán lẻ</b></div><div class="actions"><button class="primary" id="buyLot">Nhập lô sỉ 15 phần · 30K</button><button id="leaveFood">Quay lại sau</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyLot').onclick=()=>{$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'📦 Đã nhập 15 phần hàng sỉ! Lên xe ba gác chở về sạp bán nào!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+  }
+}
+
+function interact(){if($('shop').open)return;walkPath=[];clickRing.visible=false;clear();if(near>=8){openExtraPlace(extraPlaces[near-8]);return;}if(near===7){window.openHaul?.();return;}if(near===6){window.openBusinessAtStall?.();return;}if(near===5){home.click();return;}if(near>=0){if(window.tryDeliverAt?.(near))return;window.visit3d?.(near);}}
 $('interact').onclick=interact;
-const allowed=['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift','q','r'];window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey||$('shop').open)return;const k=e.key.toLowerCase();if(allowed.includes(k)){e.preventDefault();keys.add(k);}if(k==='m'&&!e.repeat){e.preventDefault();openMap();}if(k==='e'&&!e.repeat){e.preventDefault();interact();}});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+
+function toggleVehicle(){
+  if(drivable.mounted){
+    drivable.mounted=false;
+    marketAudio.stopEngine?.();
+    world.x+=Math.cos(drivable.yaw)*45;
+    world.y+=Math.sin(drivable.yaw)*45;
+    avatar.position.y=0;
+    $('vehicleBtn').textContent='🛵 Lên xe';
+    $('vehicleBtn').classList.remove('active');
+    window.dispatchEvent(new CustomEvent('market-toast',{detail:'Đã xuống xe ba gác.'}));
+  }else{
+    const d=Math.hypot(world.x-drivable.x,world.y-drivable.y);
+    if(d<95){
+      drivable.mounted=true;
+      marketAudio.startEngine?.();
+      $('vehicleBtn').textContent='🛵 Xuống xe';
+      $('vehicleBtn').classList.add('active');
+      window.dispatchEvent(new CustomEvent('market-toast',{detail:'🛵 Đã lên xe ba gác! WASD để lái xe, F xuống xe, H bấm còi!'}));
+    }else{
+      window.dispatchEvent(new CustomEvent('market-toast',{detail:'Đến gần xe ba gác ở đầu phố để lên xe nhé.'}));
+    }
+  }
+}
+$('vehicleBtn').onclick=toggleVehicle;
+
+const allowed=['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift','q','r','f','h'];window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey||$('shop').open)return;const k=e.key.toLowerCase();if(allowed.includes(k)){e.preventDefault();keys.add(k);}if(k==='m'&&!e.repeat){e.preventDefault();openMap();}if(k==='e'&&!e.repeat){e.preventDefault();interact();}if(k==='f'&&!e.repeat){e.preventDefault();toggleVehicle();}if(k==='h'&&!e.repeat){e.preventDefault();marketAudio.horn?.();}});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>keys.delete(b.dataset.key));});
 const canvas=$('world');const raycaster=new THREE.Raycaster(),floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hit=new THREE.Vector3();
 function clickToWalk(e){if($('shop').open)return;const rect=canvas.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);if(!raycaster.ray.intersectPlane(floorPlane,hit))return;const path=navigator.route({x:world.x,y:world.y},{x:hit.x*40+800,y:hit.z*40+600});if(!path.length){window.dispatchEvent(new CustomEvent('market-toast',{detail:'Không tìm được lối tới đó. Chọn một điểm trên lối đi nhé.'}));return;}walkPath=path;window.surveyView=false;const p=path[path.length-1];clickRing.position.set(toX(p.x),.055,toZ(p.y));clickRing.visible=true;}
@@ -293,10 +375,27 @@ function resize(){renderer.setSize(host.clientWidth,host.clientHeight,false);cam
 function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000||0,.04);last=now;time+=dt;let dx=0,dy=0;
 if(!$('shop').open){const sx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));const sy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));dx=sx*Math.cos(yaw)+sy*Math.sin(yaw);dy=-sx*Math.sin(yaw)+sy*Math.cos(yaw);if(keys.has('q'))yaw+=dt;if(keys.has('r'))yaw-=dt;}else clear();
 if(Math.hypot(dx,dy)>.1){walkPath=[];clickRing.visible=false;}else if(!$('shop').open&&walkPath.length){const p=walkPath[0],d=Math.hypot(p.x-world.x,p.y-world.y),reach=Math.max(4,(keys.has('shift')?240:140)*dt);if(d<=reach){world.x=p.x;world.y=p.y;walkPath.shift();if(!walkPath.length)clickRing.visible=false;}else{dx=(p.x-world.x)/d;dy=(p.y-world.y)/d;}}
-const moving=Math.hypot(dx,dy)>.1;if(moving){window.surveyView=false;const speed=(keys.has('shift')?240:140)*dt/Math.hypot(dx,dy);const free=(x,y)=>x>60&&x<4740&&y>270&&y<3540&&locations.every(b=>distance(b,x,y)>20)&&district.obstacles.every(b=>distance(b,x,y)>20);if(free(world.x+dx*speed,world.y))world.x+=dx*speed;if(free(world.x,world.y+dy*speed))world.y+=dy*speed;avatar.rotation.y=Math.atan2(dx,dy);}
+const moving=Math.hypot(dx,dy)>.1;if(moving){window.surveyView=false;let baseSp=(keys.has('shift')?240:140);
+if(speedBoostUntil>time)baseSp*=1.6;
+if(drivable.mounted)baseSp=(keys.has('shift')||speedBoostUntil>time?480:350);
+const speed=baseSp*dt/Math.hypot(dx,dy);
+if(drivable.mounted){
+  drivable.x=world.x;drivable.y=world.y;drivable.yaw=avatar.rotation.y;
+  drivable.mesh.position.set(toX(world.x),0,toZ(world.y));
+  drivable.mesh.rotation.y=drivable.yaw;
+  marketAudio.throttleEngine?.(moving);
+}
+const free=(x,y)=>x>60&&x<4740&&y>270&&y<3540&&locations.every(b=>distance(b,x,y)>20)&&district.obstacles.every(b=>distance(b,x,y)>20);if(free(world.x+dx*speed,world.y))world.x+=dx*speed;if(free(world.x,world.y+dy*speed))world.y+=dy*speed;avatar.rotation.y=Math.atan2(dx,dy);}
 avatar.position.set(toX(world.x),0,toZ(world.y));animatePerson(avatar,time,moving);
-let closest=-1,dist=105;locations.forEach((b,i)=>{const d=distance(b,world.x,world.y);if(d<dist){dist=d;closest=i;}});near=closest;
-updateSteam(time);district.update(time,dt);const pulse=marketLife.update(time,dt);if(Math.floor(time)%2===0)$('marketPulse').textContent='Nhịp chợ · '+pulse.active+' NPC hoạt động';updateMiniMap(time);const surveyText=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';if($('viewAll').textContent!==surveyText)$('viewAll').textContent=surveyText;$('viewAll').setAttribute('aria-pressed',String(!!window.surveyView));$('placeLabel').innerHTML=(window.surveyView?'TOÀN CẢNH CHỢ ĐẦU MỐI':district.zone(world.x,world.y))+'<small>07:15 · Chợ đầu mối Bình An</small>';const names=[...signs,'Nhà của má','Sạp của con','Kho giao nhận'];$('interact').disabled=near<0;$('interact').innerHTML=near<0?'<kbd>E</kbd> Đến gần sạp':'<kbd>E</kbd> '+(near===5?'Về nhà':near===6?'Mở sạp':near===7?'Nhận hàng':'Nói chuyện');$('worldHint').textContent=near<0?'Bấm để đi · Kéo để xoay camera':names[near];
+let closest=-1,dist=105;locations.forEach((b,i)=>{const d=distance(b,world.x,world.y);if(d<dist){dist=d;closest=i;}});
+if(closest<0){extraPlaces.forEach((b,j)=>{const d=distance(b,world.x,world.y);if(d<90&&d<dist){dist=d;closest=8+j;}});}
+near=closest;
+const dVeh=Math.hypot(world.x-drivable.x,world.y-drivable.y);
+if(drivable.mounted){$('vehicleBtn').classList.add('active');$('vehicleBtn').textContent='🛵 Xuống xe';}
+else if(dVeh<95){$('vehicleBtn').classList.add('active');$('vehicleBtn').textContent='🛵 Lên xe';}
+else{$('vehicleBtn').classList.remove('active');}
+
+updateSteam(time);district.update(time,dt);const pulse=marketLife.update(time,dt);if(Math.floor(time)%2===0)$('marketPulse').textContent='Nhịp chợ · '+pulse.active+' NPC hoạt động';updateMiniMap(time);const surveyText=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';if($('viewAll').textContent!==surveyText)$('viewAll').textContent=surveyText;$('viewAll').setAttribute('aria-pressed',String(!!window.surveyView));$('placeLabel').innerHTML=(window.surveyView?'TOÀN CẢNH CHỢ ĐẦU MỐI':district.zone(world.x,world.y))+'<small>07:15 · Chợ đầu mối Bình An</small>';const names=[...signs,'Nhà của má','Sạp của con','Kho giao nhận',...extraPlaces.map(p=>p.name)];$('interact').disabled=near<0;$('interact').innerHTML=near<0?'<kbd>E</kbd> Đến gần sạp':'<kbd>E</kbd> '+(near===5?'Về nhà':near===6?'Mở sạp':near===7?'Nhận hàng':near>=8?'Ghé vào':'Nói chuyện');$('worldHint').textContent=near<0?'Bấm để đi · Kéo để xoay camera':names[near];
 const target=window.getNavigationTarget?.()??0;const waypoint=window.customWaypoint;if(waypoint&&Math.hypot(world.x-waypoint.x,world.y-waypoint.y)<85)window.customWaypoint=null;const dest=waypoint?{x:waypoint.x,y:waypoint.y,w:0,h:0}:locations[target]||locations[0];marker.position.set(toX(dest.x+dest.w/2),.12,toZ(waypoint?dest.y:target===5?dest.y-40:dest.y+dest.h+45));pin.position.y=1+Math.sin(time*3)*.12;ring.rotation.z=time*.25;$('destinationHint').textContent=(waypoint?.name||names[target]||'Sạp hàng')+' · '+Math.round(distance(dest,world.x,world.y)/40)+'m';
 const business=window.getMyBusiness?.();const nextLabel=business?business.stock+' bó rau · '+business.price+'K/bó':'Mở sạp từ cấp 3';customer.visible=!!business;if(nextLabel!==businessLabel){businessLabel=nextLabel;const img=stockLabel.material.map.image,cx=img.getContext('2d');cx.clearRect(0,0,img.width,img.height);cx.fillStyle='#fff5df';cx.beginPath();cx.roundRect(0,0,384,80,24);cx.fill();cx.font='bold 29px sans-serif';cx.fillStyle='#365f52';cx.textAlign='center';cx.fillText(nextLabel,192,51);stockLabel.material.map.needsUpdate=true;}const online=window.getOnlinePeers?.()||[];if(time-lastPeersCheck>.8){lastPeersCheck=time;for(const p of online)if(!peers.has(p.publicId)){const m=person('#6c9fa3');floatingLabel(m,p.name,2.55);scene.add(m);peers.set(p.publicId,m);}for(const [id,m] of peers)if(!online.some(p=>p.publicId===id)){scene.remove(m);peers.delete(id);}}
 for(const p of online){const m=peers.get(p.publicId);if(!m)continue;const tx=toX(p.x),tz=toZ(p.y);const dd=Math.hypot(tx-m.position.x,tz-m.position.z);if(dd>30)m.position.set(tx,0,tz);else{m.rotation.y=Math.atan2(tx-m.position.x,tz-m.position.z);m.position.x=THREE.MathUtils.damp(m.position.x,tx,6,dt);m.position.z=THREE.MathUtils.damp(m.position.z,tz,6,dt);}animatePerson(m,time,dd>.15);}
