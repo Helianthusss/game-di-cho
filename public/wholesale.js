@@ -2,6 +2,7 @@ import * as THREE from './three.module.min.js';
 // A fictional wholesale-market district, inspired by Vietnamese market logistics.
 // The original playable neighborhood remains in the northwest corner.
 
+export function buildWholesaleDistrict({scene,box,cyl,sphere,label,person,mat,toX,toZ,world}){
 function palletJack(g,x,z,angle=0){
   const pj=new THREE.Group();pj.position.set(x,0,z);pj.rotation.y=angle;
   box(pj,.18,.8,.12,'#e5a93b',0,.45,.8); // handle column
@@ -61,7 +62,6 @@ function gasStation(scene,x,z){
   scene.add(gs);return gs;
 }
 
-export function buildWholesaleDistrict({scene,box,cyl,sphere,label,person,mat,toX,toZ,world}){
 const obstacles=[],halls=[],vehicles=[];const W=4800,H=3600;
 function slab(x,y,w,h,color,height=.025){return box(scene,w/40,height,h/40,color,toX(x+w/2),height/2,toZ(y+h/2));}
 const roads=[{x:1640,y:120,w:240,h:3250},{x:90,y:1260,w:4600,h:240},{x:1640,y:2500,w:2850,h:240},{x:4320,y:120,w:240,h:3250},{x:1640,y:3190,w:2920,h:200}];
