@@ -101,7 +101,7 @@ function buildRiverCanal(scene, box, cyl, sphere, label, mat, toX, toZ, obstacle
 }
 function buildClockTower(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles) {
   const g = new THREE.Group();
-  g.position.set(toX(1450), 0, toZ(1280));
+  g.position.set(toX(1550), 0, toZ(1700));
   // Roundabout island base
   cyl(g, 7.5, 0.4, '#abb2b9', 0, 0.2, 0);
   cyl(g, 6.8, 0.3, '#58d68d', 0, 0.4, 0); // grass lawn
@@ -135,7 +135,7 @@ function buildClockTower(scene, box, cyl, sphere, label, mat, toX, toZ, obstacle
 // ==================== KHU CHỢ NHÀ LỒNG SỐ 2 (COVERED MARKET PAVILION 2) ====================
 function buildSecondMarketPavilion(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles) {
   const g = new THREE.Group();
-  g.position.set(toX(850), 0, toZ(1650));
+  g.position.set(toX(850), 0, toZ(2350));
   const w = 26, d = 16;
   // Floor slab
   box(g, w, 0.18, d, '#d5dbdb', 0, 0.09, 0);
@@ -226,7 +226,7 @@ function buildSecondMarketPavilion(scene, box, cyl, sphere, label, person, mat, 
 // ==================== PHỐ ẨM THỰC ĐÊM SẦM UẤT (GRAND FOOD PLAZA) ====================
 function buildFoodPlaza(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles) {
   const g = new THREE.Group();
-  g.position.set(toX(650), 0, toZ(2050));
+  g.position.set(toX(650), 0, toZ(2750));
   label(g, 'PHỐ ẨM THỰC ĐÊM BÌNH AN', 0, 4.8, 0, 16, '#c0392b', '#f9e79f', 'ĐẶC SẢN 3 MIỀN · BÁN XUYÊN ĐÊM');
 
   const foodStalls = [

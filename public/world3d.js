@@ -219,19 +219,19 @@ function stool(g,x,z,color='#bd6551'){cyl(g,.31,.11,color,x,.55,z);for(const dx 
 function umbrella(g,x,z,color){cyl(g,.045,3.3,'#96744e',x,1.65,z);mesh(g,'ConeGeometry',[1.75,.7,8],color,x,3.7,z);}
 function scooter(x,z,color){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const zz of [-.6,.6]){const tire=mesh(g,'TorusGeometry',[.28,.08,5,12],'#3d4946',0,.35,zz);tire.rotation.y=Math.PI/2;}box(g,.45,.6,.85,color,0,.65,0);box(g,.47,.14,.7,'#4f4b40',0,1,-.1);box(g,.4,.7,.13,color,0,.88,.6);box(g,.7,.06,.06,'#65766d',0,1.28,.65);sphere(g,.12,'#fbebbc',0,1,.71);g.rotation.y=-.35;}
 // Ground texture is drawn locally, so no external asset requests are needed.
-const groundCanvas=document.createElement('canvas');groundCanvas.width=groundCanvas.height=256;const gc=groundCanvas.getContext('2d');gc.fillStyle='#c7b99c';gc.fillRect(0,0,256,256);for(let y=0;y<256;y+=64)for(let x=0;x<256;x+=64){gc.fillStyle=(x+y)%128?'#c6b69a':'#cebea2';gc.fillRect(x+1,y+1,62,62);gc.fillStyle='#b8a88e';gc.fillRect(x+6,y+7,3,2);}const groundTex=new THREE.CanvasTexture(groundCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(84,66);groundTex.colorSpace=THREE.SRGBColorSpace;const ground=new THREE.Mesh(new THREE.PlaneGeometry(280,220),new THREE.MeshStandardMaterial({map:groundTex,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(50,0,35);ground.receiveShadow=true;scene.add(ground);
+const groundCanvas=document.createElement('canvas');groundCanvas.width=groundCanvas.height=256;const gc=groundCanvas.getContext('2d');gc.fillStyle='#c7b99c';gc.fillRect(0,0,256,256);for(let y=0;y<256;y+=64)for(let x=0;x<256;x+=64){gc.fillStyle=(x+y)%128?'#c6b69a':'#cebea2';gc.fillRect(x+1,y+1,62,62);gc.fillStyle='#b8a88e';gc.fillRect(x+6,y+7,3,2);}const groundTex=new THREE.CanvasTexture(groundCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(102,84);groundTex.colorSpace=THREE.SRGBColorSpace;const ground=new THREE.Mesh(new THREE.PlaneGeometry(340,280),new THREE.MeshStandardMaterial({map:groundTex,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(50,0,35);ground.receiveShadow=true;scene.add(ground);
 const toX=x=>(x-800)/40,toZ=y=>(y-600)/40;
 // Townhouses, shutters, balconies and hanging signs around the market.
-for(let i=0;i<9;i++){const g=new THREE.Group();g.position.set(-20+i*5,0,-11);scene.add(g);const c=['#d9c396','#c0c6a1','#dcad90','#c2c7b1'][i%4];box(g,4.8,5,3.7,c,0,2.5,0);box(g,5,1,4,'#a96952',0,5.1,0);for(let z=-1.8;z<2;z+=.4)box(g,5,.07,.08,'#c48a69',0,5.63,z);box(g,3.7,2.4,.1,'#648b82',0,1.2,1.9);for(let x=-1.7;x<1.8;x+=.24)box(g,.035,2.3,.04,'#96aa93',x,1.2,1.98);box(g,1.3,1.2,.1,'#577e79',0,3.8,1.9);box(g,1.7,.12,.5,'#e9d5b1',0,3.15,2.05);label(g,['TẠP HÓA','BÚN RIÊU','CÀ PHÊ','TIỆM MAY'][i%4],0,2.8,2,3.8);}
+for(let i=0;i<9;i++){const g=new THREE.Group();g.position.set(-28+i*7,0,-26);scene.add(g);const c=['#d9c396','#c0c6a1','#dcad90','#c2c7b1'][i%4];box(g,4.8,5,3.7,c,0,2.5,0);box(g,5,1,4,'#a96952',0,5.1,0);for(let z=-1.8;z<2;z+=.4)box(g,5,.07,.08,'#c48a69',0,5.63,z);box(g,3.7,2.4,.1,'#648b82',0,1.2,1.9);for(let x=-1.7;x<1.8;x+=.24)box(g,.035,2.3,.04,'#96aa93',x,1.2,1.98);box(g,1.3,1.2,.1,'#577e79',0,3.8,1.9);box(g,1.7,.12,.5,'#e9d5b1',0,3.15,2.05);label(g,['TẠP HÓA','BÚN RIÊU','CÀ PHÊ','TIỆM MAY'][i%4],0,2.8,2,3.8);}
 // Front gate leaves the lane open and gives the market a recognizable entrance.
 for(const x of [-7,7]){box(scene,.5,5,.5,'#d8b17d',x,2.5,12.7);box(scene,.7,.25,.7,'#af7152',x,5,12.7);}box(scene,14.7,1.3,.55,'#527e6a',0,5.3,12.7);
 label(scene,'CHỢ BÌNH AN',0,5.3,12.7,10,'#547d67','#fff0c9','HỌP CHỢ TỪ 1986',true);
 const boothGroups=[];const signs=['CÁ TƯƠI · CÔ BA','RAU VƯỜN · DÌ TƯ','CÀ CHUA · CÔ SÁU','GIA VỊ · CHÚ NĂM','QUÁN BÚN · CHỊ ÚT'];
 for(let i=0;i<5;i++){const b=locations[i],g=new THREE.Group();g.position.set(toX(b.x+b.w/2),0,toZ(b.y+b.h/2));if(i>=3)g.rotation.y=Math.PI;scene.add(g);g.userData.index=i;boothGroups.push(g);const w=b.w/40,d=b.h/40,c=['#578a93','#69966a','#bc785c','#b59b69','#c68b53'][i];
 for(const x of [-w/2,w/2])for(const z of [-d/2,d/2])cyl(g,.065,3.9,'#a78a5c',x,1.95,z);
-const roof=box(g,w+.5,.1,d+.5,c,0,3.8,0);roof.rotation.x=-.08;
-const awn=stripedAwning(g,w+.4,d*.6,['#357392','#f0ecdd','#ce5642'][i%3],'#f6f3e6');awn.position.set(0,3.4,d/2+.2);awn.rotation.x=-.18;
-label(g,signs[i],0,4.35,0,w-.1,'#fff1cf','#3c6155','',false);
+const roof=box(g,w+.8,.15,d+.8,c,0,4.9,0);roof.rotation.x=-.05;
+const awn=stripedAwning(g,w+.6,d*.65,['#357392','#f0ecdd','#ce5642'][i%3],'#f6f3e6');awn.position.set(0,4.4,d/2+.3);awn.rotation.x=-.16;
+label(g,signs[i],0,5.4,0,w+.2,'#fff1cf','#3c6155','',false);
 box(g,w-.2,.3,1.15,'#bb915c',0,1.15,1.25);for(let x=-w/2+.4;x<w/2;x+=.65)box(g,.05,.95,1.05,'#90744f',x,.54,1.25);
 nhonHoaScale(g,w/2-.75,1.3,1.25);
 for(let j=0;j<3;j++){const x=-2+j*1.3;if(i===0)fish(g,x,1.37,1.3);else basket(g,x,1.4,1.3,i===2?1:i===3?2:0);}
@@ -254,17 +254,17 @@ label(playerBooth,'KHU SẠP CỦA CON',0,4,0,4.6);const stockLabel=floatingLabe
 // Street props: plastic stools, umbrellas, baskets and parked motorbikes.
 
 // Phố Ẩm Thực & Quán Xá Đường Phố (Food Street Alley)
-sugarCaneCart(scene,toX(520),toZ(1180),Math.PI/4);
-banhMiCart(scene,toX(820),toZ(1180),0);
-streetCafe(scene,toX(1120),toZ(1180));
+sugarCaneCart(scene,toX(520),toZ(1880),Math.PI/4);
+banhMiCart(scene,toX(920),toZ(1880),0);
+streetCafe(scene,toX(1320),toZ(1880));
 // Hanging festive string lights across the street
-for(let sx=-12;sx<=12;sx+=2.5){
-  const bulb=sphere(scene,.1,'#f39c12',sx,4.8,11.5);
+for(let sx=-20;sx<=20;sx+=3.5){
+  const bulb=sphere(scene,.14,'#f39c12',sx,5.8,32);
   bulb.material.emissive=new THREE.Color('#f39c12');bulb.material.emissiveIntensity=.6;
 }
 // Second row of Vietnamese commercial shop-houses along the boulevard
 for(let i=0;i<7;i++){
-  const g=new THREE.Group();g.position.set(-18+i*5.5,0,21);g.rotation.y=Math.PI;scene.add(g);
+  const g=new THREE.Group();g.position.set(-24+i*7.5,0,46);g.rotation.y=Math.PI;scene.add(g);
   const c=['#f39c12','#e74c3c','#16a085','#2980b9'][i%4];
   box(g,5.2,5.5,4,'#e0d0b0',0,2.75,0);
   box(g,5.4,1,4.2,'#c0392b',0,5.75,0); // roof eaves
@@ -274,7 +274,7 @@ for(let i=0;i<7;i++){
   label(g,['TIỆM THUỐC TÂY','NƯỚC MÍA','TẠP HÓA 77','BÁNH MÌ PÂTÉ','CÀ PHÊ PHIN','QUẦY TRÁI CÂY','ĐỒ GIA DỤNG'][i%7],0,2.85,2.15,4);
 }
 
-const playerVehicle=baGac(scene,toX(1450),toZ(700),-Math.PI/3,'#326f94');
+const playerVehicle=baGac(scene,toX(1100),toZ(800),-Math.PI/3,'#326f94');
 const drivableCargo=new THREE.Group();
 box(drivableCargo,.65,.4,.55,'#b8860b',-.3,1,-.6);
 box(drivableCargo,.58,.38,.5,'#c0392b',.32,.98,-.6);
@@ -282,7 +282,7 @@ box(drivableCargo,.75,.35,.55,'#27ae60',0,1.38,-.6);
 sphere(drivableCargo,.26,'#ecf0f1',-.22,.9,-1.15);
 sphere(drivableCargo,.28,'#f39c12',.24,.92,-1.15);
 drivableCargo.visible=false;
-playerVehicle.add(drivableCargo);const drivable={x:1450,y:700,yaw:-Math.PI/3,mounted:false,mesh:playerVehicle};deliveryCub(scene,toX(350),toZ(520),Math.PI/4,'#4a7567');
+playerVehicle.add(drivableCargo);const drivable={x:1100,y:800,yaw:-Math.PI/3,mounted:false,mesh:playerVehicle};deliveryCub(scene,toX(350),toZ(520),Math.PI/4,'#4a7567');
 for(const [x,z,c] of [[-16,5,'#b96b53'],[16,-1,'#75998b']]){umbrella(scene,x,z,c);stool(scene,x-.9,z+1);stool(scene,x+.9,z+1.3,'#538d86');cyl(scene,.7,.12,'#a8b6a5',x,1.1,z+1.4);cyl(scene,.12,1,'#a8b6a5',x,.55,z+1.4);basket(scene,x,1.3,z+1.4,2);}
 for(let i=0;i<4;i++)scooter(-17+i*1.8,11,['#6c9492','#bf7861','#e1c59a'][i%3]);
 for(const [x,z] of [[-19,-7],[19,-7],[-18,10],[18,11],[-5,7],[5,7]]){cyl(scene,.17,2.8,'#8e7955',x,1.4,z);for(let j=0;j<3;j++){const leaf=sphere(scene,1.05,['#7fa472','#8eac76','#6c966c'][j],x+(j-1)*.5,3+j*.4,z);leaf.scale.y=.8;}cyl(scene,.6,.55,'#b28057',x,.25,z);}
@@ -655,7 +655,7 @@ if(cameraMode===0||window.surveyView){
 }
 sun.target.position.copy(avatar.position);renderer.render(scene,camera);
 }
-camera.position.set(toX(world.x)+4,16,toZ(world.y)+22);yaw=.12;pitch=.54;zoom=26;$('loading3d').remove();requestAnimationFrame(frame);
+camera.position.set(toX(world.x)+5,19,toZ(world.y)+28);yaw=.10;pitch=.48;zoom=32;$('loading3d').remove();requestAnimationFrame(frame);
 window.visit3d=i=>{window.dispatchEvent(new CustomEvent('visit-stall',{detail:i}));};
 
 
