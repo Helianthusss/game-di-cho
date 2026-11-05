@@ -15,3 +15,27 @@
 #timeOfDayBtn{font-size:9px;background:#f39c12;color:#fff;border-color:#d68910;padding:6px 10px;border-radius:8px}
 #buffBar{position:fixed;top:84px;left:210px;display:flex;gap:8px;z-index:3;pointer-events:none}
 .buff-pill{background:#fff9e9f2;border:1px solid #d5c898;border-radius:20px;padding:6px 14px;font-size:10px;font-weight:700;color:#27ae60;box-shadow:0 3px 12px #00000015;backdrop-filter:blur(8px);display:flex;align-items:center;gap:6px}
+
+#weatherBtn{background:#3498db;color:#fff;border-color:#2980b9;font-size:9px;padding:6px 10px;border-radius:8px}
+#cameraModeBtn{background:#8e44ad;color:#fff;border-color:#6c3483;font-size:9px;padding:6px 10px;border-radius:8px}
+#wardrobeBtn{background:#16a085;color:#fff;border-color:#117a65;font-size:9px;padding:6px 10px;border-radius:8px}
+#photoModeBtn{background:#d35400;color:#fff;border-color:#a04000;font-size:9px;padding:6px 10px;border-radius:8px}
+
+#vendorToast{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#fff9e9fa;border:2px solid #e67e22;border-radius:25px;padding:8px 18px;box-shadow:0 4px 20px rgba(0,0,0,0.18);font-size:11px;font-weight:600;color:#a04000;z-index:100;display:none;align-items:center;gap:8px;pointer-events:none;animation:popIn 0.3s ease-out}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+
+body.photo-mode header,body.photo-mode .intro,body.photo-mode .shopping-mini,body.photo-mode #districtMap,body.photo-mode #lifeHud,body.photo-mode .game-controls,body.photo-mode #placeLabel,body.photo-mode #compass,body.photo-mode .world-hint,body.photo-mode #buffBar,body.photo-mode #vendorToast{display:none!important}
+#photoOverlay{display:none;position:fixed;inset:0;z-index:999;border:16px solid rgba(0,0,0,0.85);box-shadow:inset 0 0 80px rgba(0,0,0,0.45);font-family:monospace}
+body.photo-mode #photoOverlay{display:block}
+.viewfinder-hud{position:absolute;inset:20px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.vf-top{display:flex;justify-content:space-between;color:#e74c3c;font-weight:700;font-size:13px;text-shadow:0 2px 4px #000}
+.vf-center{align-self:center;color:rgba(255,255,255,0.7);font-size:28px}
+.vf-bottom{display:flex;align-items:center;justify-content:space-between;pointer-events:auto}
+.vf-label{color:#f1c40f;font-size:12px;font-weight:700;letter-spacing:2px;text-shadow:0 2px 4px #000}
+.vf-actions{display:flex;gap:10px}
+.vf-actions button{font-family:'Be Vietnam Pro',sans-serif;font-weight:700;padding:9px 16px;border-radius:10px;font-size:11px}
+#snapPhoto{background:#e74c3c;color:#fff;border-color:#c0392b}
+#exitPhoto{background:#ecf0f1;color:#2c3e50;border-color:#bdc3c7}
+.flash-effect{position:fixed;inset:0;background:#fff;z-index:1000;opacity:0;pointer-events:none;transition:opacity .15s ease-out}
+.flash-effect.flash{opacity:1}
+#deliveryHud{display:none;position:fixed;top:84px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;border-radius:20px;padding:6px 16px;font-weight:700;font-size:10px;box-shadow:0 3px 15px rgba(39,174,96,0.3);z-index:4}

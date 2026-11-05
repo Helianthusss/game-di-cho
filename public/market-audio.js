@@ -121,5 +121,59 @@ export function createMarketAudio(){
   osc.start(); osc.stop(context.currentTime+0.38);
  }
 
- return {start,stop,startEngine,throttleEngine,stopEngine,horn,get on(){return on;}};
+ let rainSource, rainGain, isRaining=false;
+ function startRain(){
+  if(!context || !on || isRaining) return;
+  try {
+   isRaining=true;
+   const buf=context.createBuffer(1, context.sampleRate*2, context.sampleRate);
+   const d=buf.getChannelData(0);
+   for(let i=0; i<d.length; i++) d[i]=(Math.random()*2-1)*0.35;
+   rainSource=context.createBufferSource();
+   rainSource.buffer=buf; rainSource.loop=true;
+   const filter=context.createBiquadFilter();
+   filter.type='lowpass'; filter.frequency.value=1100;
+   rainGain=context.createGain();
+   rainGain.gain.setValueAtTime(0, context.currentTime);
+   rainGain.gain.linearRampToValueAtTime(0.045, context.currentTime+1.5);
+   rainSource.connect(filter); filter.connect(rainGain); rainGain.connect(master);
+   rainSource.start();
+  } catch(e){}
+ }
+ function stopRain(){
+  if(rainGain && context){
+   rainGain.gain.setTargetAtTime(0, context.currentTime, 0.4);
+   setTimeout(()=>{
+    if(rainSource){ try { rainSource.stop(); }catch(e){} rainSource=null; }
+   }, 500);
+  }
+  isRaining=false;
+ }
+ function playVendorChime(){
+  if(!context || !on) return;
+  [659.25, 523.25].forEach((freq, idx)=>{
+   setTimeout(()=>{
+    if(!context || !on) return;
+    const osc=context.createOscillator(), g=context.createGain();
+    osc.type='sine'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0, context.currentTime);
+    g.gain.linearRampToValueAtTime(0.06, context.currentTime+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, context.currentTime+0.45);
+    osc.connect(g); g.connect(master);
+    osc.start(); osc.stop(context.currentTime+0.5);
+   }, idx*220);
+  });
+ }
+ function playShutter(){
+  if(!context) return;
+  const osc=context.createOscillator(), g=context.createGain();
+  osc.type='sawtooth'; osc.frequency.setValueAtTime(1400, context.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(200, context.currentTime+0.08);
+  g.gain.setValueAtTime(0.09, context.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, context.currentTime+0.09);
+  osc.connect(g); g.connect(context.destination);
+  osc.start(); osc.stop(context.currentTime+0.1);
+ }
+
+ return {start,stop,startEngine,throttleEngine,stopEngine,horn,startRain,stopRain,playVendorChime,playShutter,get on(){return on;}};
 }
