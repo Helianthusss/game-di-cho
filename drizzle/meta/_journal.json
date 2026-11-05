@@ -15,6 +15,20 @@
       "when": 1793758000000,
       "tag": "0001_progression",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793844000000,
+      "tag": "0002_gameplay",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793848000000,
+      "tag": "0003_wholesale_jobs",
+      "breakpoints": true
     }
   ]
 }
