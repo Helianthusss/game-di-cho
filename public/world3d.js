@@ -64,6 +64,70 @@ function stripedAwning(g,w,d,color1='#2d6a8a',color2='#f4ebd0'){
   }
   g.add(awn);return awn;
 }
+
+function sugarCaneCart(scene,x,z,angle=0){
+  const c=new THREE.Group();c.position.set(x,0,z);c.rotation.y=angle;
+  // Cart stainless steel body & wheels
+  box(c,1.6,1.0,1.0,'#cbd5db',0,.6,0);
+  for(const wx of [-.75,.75])for(const wz of [-.45,.45]){
+    const w=cyl(c,.16,.08,'#2f363b',wx,.16,wz);w.rotation.z=Math.PI/2;
+  }
+  // Spinning sugarcane crusher machine on counter
+  box(c,.55,.45,.4,'#27ae60',-.3,1.3,0); // green motor casing
+  cyl(c,.18,.05,'#e74c3c',-.3,1.3,.24).rotation.x=Math.PI/2; // red wheel
+  for(const rx of [-.4,-.2])cyl(c,.06,.22,'#bdc3c7',rx,1.25,0); // steel rollers
+  // Bundle of peeled sugarcane stalks
+  for(let i=0;i<6;i++){
+    const sc=cyl(c,.035,1.8,'#7eb555',.45+Math.sin(i)*.08,.9+i*.02,.2+Math.cos(i)*.08);
+    sc.rotation.z=-.15;
+  }
+  // Plastic cups stack
+  cyl(c,.06,.25,'#ffffff',.1,1.2,-.2);
+  // Umbrella canopy
+  umbrella(c,0,0,'#27ae60');
+  label(c,'NƯỚC MÍA SIÊU SẠCH',0,2.6,0,3.2,'#27ae60','#ffffff','10K · TƯƠI MÁT',true);
+  scene.add(c);return c;
+}
+function banhMiCart(scene,x,z,angle=0){
+  const bm=new THREE.Group();bm.position.set(x,0,z);bm.rotation.y=angle;
+  // Stainless steel body
+  box(bm,1.8,1.0,1.1,'#d2d7da',0,.6,0);
+  for(const wx of [-.85,.85])for(const wz of [-.5,.5]){
+    const w=cyl(bm,.16,.08,'#2f363b',wx,.16,wz);w.rotation.z=Math.PI/2;
+  }
+  // Glass showcase upper part
+  box(bm,1.7,.7,.95,'#95a5a6',0,1.45,0); // frame
+  // Golden crusty baguettes inside
+  for(let i=0;i<4;i++){
+    const bread=cyl(bm,.065,.45,'#e67e22',-.5+i*.3,1.3,.1);
+    bread.rotation.z=Math.PI/2;
+  }
+  // Pâté tray & cucumbers
+  box(bm,.35,.08,.25,'#795548',.5,1.25,-.15); // pate
+  cyl(bm,.03,.35,'#2ecc71',.5,1.25,.15).rotation.z=Math.PI/2; // cucumber
+  label(bm,'BÁNH MÌ SÀI GÒN',0,2.3,0,3.4,'#e67e22','#ffffff','PÂTÉ · CHẢ LỤA · 15K',true);
+  scene.add(bm);return bm;
+}
+function streetCafe(scene,x,z){
+  const cf=new THREE.Group();cf.position.set(x,0,z);
+  // Low folding table
+  box(cf,1.1,.05,.8,'#e74c3c',0,.6,0); // red plastic table
+  for(const dx of [-.45,.45])for(const dz of [-.3,.3])cyl(cf,.025,.6,'#95a5a6',dx,.3,dz);
+  // Aluminum coffee phin & iced coffee glass
+  cyl(cf,.04,.12,'#bdc3c7',-.2,.7,0); // phin
+  cyl(cf,.045,.14,'#2c1e13',.15,.7,0); // coffee glass
+  cyl(cf,.045,.14,'#f1c40f',.35,.7,0); // iced tea
+  // Stools around table
+  stool(cf,-.65,0,'#2980b9');
+  stool(cf,.65,0,'#27ae60');
+  stool(cf,0,.55,'#e74c3c');
+  // Seated customer enjoying coffee
+  const customer=seatedPerson('#34495e',true);
+  customer.position.set(-.65,0,0);customer.rotation.y=Math.PI/2;
+  cf.add(customer);
+  scene.add(cf);return cf;
+}
+
 function baGac(scene,x,z,angle=0,color='#3c7099'){
   const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=angle;
   const fw=cyl(g,.32,.1,'#2c3236',0,.32,1.55);fw.rotation.z=Math.PI/2;
@@ -179,6 +243,28 @@ const playerBooth=new THREE.Group();playerBooth.position.set(toX(1370),0,toZ(990
 stripedAwning(playerBooth,4.5,1.6,'#326d8f','#f5f3e9').position.set(0,3.3,1.5);nhonHoaScale(playerBooth,1.4,1.45,.4);
 label(playerBooth,'KHU SẠP CỦA CON',0,4,0,4.6);const stockLabel=floatingLabel(playerBooth,'Mở sạp từ cấp 3',2.4);const customer=person('#b5a371');customer.position.set(toX(1370)-1.5,0,toZ(990)-2.5);customer.rotation.y=0;scene.add(customer);floatingLabel(customer,'Chờ mua rau',2.5);let businessLabel='';
 // Street props: plastic stools, umbrellas, baskets and parked motorbikes.
+
+// Phố Ẩm Thực & Quán Xá Đường Phố (Food Street Alley)
+sugarCaneCart(scene,toX(520),toZ(1180),Math.PI/4);
+banhMiCart(scene,toX(820),toZ(1180),0);
+streetCafe(scene,toX(1120),toZ(1180));
+// Hanging festive string lights across the street
+for(let sx=-12;sx<=12;sx+=2.5){
+  const bulb=sphere(scene,.1,'#f39c12',sx,4.8,11.5);
+  bulb.material.emissive=new THREE.Color('#f39c12');bulb.material.emissiveIntensity=.6;
+}
+// Second row of Vietnamese commercial shop-houses along the boulevard
+for(let i=0;i<7;i++){
+  const g=new THREE.Group();g.position.set(-18+i*5.5,0,21);g.rotation.y=Math.PI;scene.add(g);
+  const c=['#f39c12','#e74c3c','#16a085','#2980b9'][i%4];
+  box(g,5.2,5.5,4,'#e0d0b0',0,2.75,0);
+  box(g,5.4,1,4.2,'#c0392b',0,5.75,0); // roof eaves
+  box(g,3.8,2.4,.1,c,0,1.2,2.05); // shopfront
+  box(g,1.4,1.4,.1,'#2c3e50',0,4.0,2.05); // upper window
+  box(g,2.2,.15,.6,'#7f8c8d',0,3.2,2.2); // balcony
+  label(g,['TIỆM THUỐC TÂY','NƯỚC MÍA','TẠP HÓA 77','BÁNH MÌ PÂTÉ','CÀ PHÊ PHIN','QUẦY TRÁI CÂY','ĐỒ GIA DỤNG'][i%7],0,2.85,2.15,4);
+}
+
 baGac(scene,toX(1450),toZ(700),-Math.PI/3,'#326f94');deliveryCub(scene,toX(350),toZ(520),Math.PI/4,'#4a7567');
 for(const [x,z,c] of [[-16,5,'#b96b53'],[16,-1,'#75998b']]){umbrella(scene,x,z,c);stool(scene,x-.9,z+1);stool(scene,x+.9,z+1.3,'#538d86');cyl(scene,.7,.12,'#a8b6a5',x,1.1,z+1.4);cyl(scene,.12,1,'#a8b6a5',x,.55,z+1.4);basket(scene,x,1.3,z+1.4,2);}
 for(let i=0;i<4;i++)scooter(-17+i*1.8,11,['#6c9492','#bf7861','#e1c59a'][i%3]);
