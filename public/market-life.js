@@ -1,4 +1,7 @@
 import * as THREE from './three.module.min.js';
+const BUYER_CALLS=['Cô Ba lựa giùm con con cá lóc tươi nha!','Rau muống ruộng xào tỏi là đúng bài luôn!','Cà chua bi chín đỏ, tươi mọng ghê!','Cho con gói me chua với ớt cay nha chú Năm!','Chị Út ơi cho tô bún riêu nhiều riêu!','Cân đúng ký giùm em nha cô!','Chợ sáng nay đông đúc, vui ghê!','Thêm cho con cọng hành ngò nha dì!','Đồ tươi vầy mua về má khen liền!','Lựa con ít cà chua nấu canh chua nha cô Sáu!'];
+const WORKER_CALLS=['Tránh đường giùm xe đá chút cô chú ơi!','Kiện rau củ Đà Lạt nhập kho bãi xe đây!','Xe giao hàng tới, nhường lối giùm chút nha!','Chuyển hàng gấp qua quán ăn kịp giờ trưa!'];
+
 // Local NPC activity is intentionally separate from real online players.
 export function buildMarketLife({scene,box,cyl,person,floatingLabel,animatePerson,navigator,toX,toZ,world,district}){
  const actors=[],vendors=[],routeCache=new Map();let density='busy';try{density=localStorage.getItem('market-density')==='light'?'light':'busy';}catch{}
@@ -6,7 +9,7 @@ export function buildMarketLife({scene,box,cyl,person,floatingLabel,animatePerso
  const hallRoutes=district.halls.map(h=>[{x:h.x+h.w/2,y:h.y+100},{x:h.x+h.w/2,y:h.y+h.h-90},{x:h.x+h.w/2+55,y:h.y+h.h+70}]);
  const loading=[{x:2950,y:3270},{x:3650,y:3270},{x:3650,y:2790},{x:2950,y:2790}];
  function cart(g){box(g,.9,.12,1.1,'#a88b5d',0,.5,.65);for(const x of [-.38,.38])for(const z of [.2,1.1]){const wheel=cyl(g,.12,.09,'#526258',x,.25,z);wheel.rotation.z=Math.PI/2;}box(g,.06,.85,.06,'#718574',-.4,.8,.05);box(g,.06,.85,.06,'#718574',.4,.8,.05);box(g,.85,.06,.06,'#718574',0,1.2,.05);box(g,.75,.5,.75,'#bb9b65',0,.8,.66);box(g,.63,.13,.62,'#8fa771',0,1.12,.66);}
- function add(i,route,role='buyer'){const g=person(role==='worker'?'#779299':['#a3819b','#a6a06e','#c28a6c','#79a198'][i%4],i%3!==0);const start=route[i%route.length];g.position.set(toX(start.x),0,toZ(start.y));scene.add(g);const bubble=floatingLabel(g,role==='worker'?'Chuyển hàng vào kho':['Cô lấy hai bó nhé','Hàng mới về nè','Cho con xem một chút','Mua thêm ít cà chua'][i%4],2.55);bubble.visible=false;
+ function add(i,route,role='buyer'){const g=person(role==='worker'?'#779299':['#a3819b','#a6a06e','#c28a6c','#79a198'][i%4],i%3!==0);const start=route[i%route.length];g.position.set(toX(start.x),0,toZ(start.y));scene.add(g);const bubbleText=role==='worker'?WORKER_CALLS[i%WORKER_CALLS.length]:BUYER_CALLS[i%BUYER_CALLS.length];const bubble=floatingLabel(g,bubbleText,2.55);bubble.visible=false;
  if(role==='cart')cart(g);if(role==='worker')box(g,.63,.5,.57,'#b59765',0,1.03,.5);
  g.traverse(m=>{if(m.isMesh)m.castShadow=false;});actors.push({g,bubble,route,role,x:start.x,y:start.y,index:i%route.length,path:[],wait:1+i%6,speed:role==='buyer'?22+i%9:31,phase:i});}
  for(let i=0;i<14;i++)add(i,core,i%6===0?'cart':'buyer');
