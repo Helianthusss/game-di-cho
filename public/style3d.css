@@ -39,3 +39,28 @@ body.photo-mode #photoOverlay{display:block}
 .flash-effect{position:fixed;inset:0;background:#fff;z-index:1000;opacity:0;pointer-events:none;transition:opacity .15s ease-out}
 .flash-effect.flash{opacity:1}
 #deliveryHud{display:none;position:fixed;top:84px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;border-radius:20px;padding:6px 16px;font-weight:700;font-size:10px;box-shadow:0 3px 15px rgba(39,174,96,0.3);z-index:4}
+
+/* Virtual Touch Joystick */
+#virtualJoystick{display:none;position:absolute;left:25px;bottom:25px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.45);backdrop-filter:blur(6px);touch-action:none;z-index:50}
+#joystickKnob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#e67e22;border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,0.3);touch-action:none;pointer-events:none}
+@media(pointer:coarse){#virtualJoystick{display:block}.dpad{display:none}}
+
+/* Quick Chat Emote Bar */
+#quickChatBar{position:absolute;bottom:85px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(255,249,233,0.92);border:1px solid #dcd7be;border-radius:24px;padding:5px 9px;backdrop-filter:blur(10px);box-shadow:0 4px 18px rgba(0,0,0,0.12);z-index:10;max-width:94vw;overflow-x:auto}
+.chat-pill{font-size:10px;font-weight:700;padding:6px 11px;border-radius:16px;background:#fffbef;border:1px solid #d2dbc5;color:#2c3e50;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.chat-pill:hover{background:#eaf2e8;border-color:#82b378}
+@media(max-width:650px){#quickChatBar{bottom:120px;padding:4px 6px}.chat-pill{font-size:9px;padding:5px 8px}}
+
+/* Floating Coin Popup */
+.coin-popup{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font-size:26px;font-weight:800;color:#f39c12;text-shadow:0 2px 8px rgba(0,0,0,0.4),0 0 15px #f1c40f;z-index:9999;pointer-events:none;animation:floatCoin 1.5s cubic-bezier(0.18,0.89,0.32,1.28) forwards}
+@keyframes floatCoin{0%{opacity:0;transform:translate(-50%,20px) scale(0.6)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.2)}80%{opacity:1;transform:translate(-50%,-40px) scale(1)}100%{opacity:0;transform:translate(-50%,-70px) scale(0.9)}}
+
+/* Invite Button in Header */
+#inviteBtn{background:#27ae60;color:#fff;border-color:#1e8449;font-weight:700;font-size:10px;padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:5px}
+#inviteBtn:hover{background:#219653}
+@media(max-width:650px){#inviteBtn{font-size:9px;padding:6px 8px}#inviteBtn span{display:none}}
+
+/* Haggle quote chips */
+.haggle-quotes{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0}
+.quote-chip{font-size:10px;padding:5px 9px;border-radius:8px;background:#edf2e4;border:1px solid #c7d6ba;color:#355a3c;cursor:pointer}
+.quote-chip:hover{background:#d5e5cb}

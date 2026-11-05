@@ -164,7 +164,34 @@ export function createMarketAudio(){
    }, idx*220);
   });
  }
- function playShutter(){
+   function playCoinTing(){
+   if(!context || !on) return;
+   [987.77, 1318.51].forEach((freq, idx)=>{
+    setTimeout(()=>{
+     if(!context || !on) return;
+     const osc=context.createOscillator(), g=context.createGain();
+     osc.type='sine'; osc.frequency.value=freq;
+     g.gain.setValueAtTime(0, context.currentTime);
+     g.gain.linearRampToValueAtTime(0.08, context.currentTime+0.01);
+     g.gain.exponentialRampToValueAtTime(0.0001, context.currentTime+0.55);
+     osc.connect(g); g.connect(master);
+     osc.start(); osc.stop(context.currentTime+0.6);
+    }, idx*120);
+   });
+  }
+
+  function playChatChime(){
+   if(!context || !on) return;
+   const osc=context.createOscillator(), g=context.createGain();
+   osc.type='triangle'; osc.frequency.setValueAtTime(587.33, context.currentTime);
+   osc.frequency.exponentialRampToValueAtTime(880, context.currentTime+0.12);
+   g.gain.setValueAtTime(0.06, context.currentTime);
+   g.gain.exponentialRampToValueAtTime(0.0001, context.currentTime+0.25);
+   osc.connect(g); g.connect(master);
+   osc.start(); osc.stop(context.currentTime+0.28);
+  }
+
+  function playShutter(){
   if(!context) return;
   const osc=context.createOscillator(), g=context.createGain();
   osc.type='sawtooth'; osc.frequency.setValueAtTime(1400, context.currentTime);
@@ -175,5 +202,5 @@ export function createMarketAudio(){
   osc.start(); osc.stop(context.currentTime+0.1);
  }
 
- return {start,stop,startEngine,throttleEngine,stopEngine,horn,startRain,stopRain,playVendorChime,playShutter,get on(){return on;}};
+ return {start,stop,startEngine,throttleEngine,stopEngine,horn,startRain,stopRain,playVendorChime,playShutter,playCoinTing,playChatChime,get on(){return on;}};
 }

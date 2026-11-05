@@ -550,7 +550,7 @@ canvas.addEventListener('pointerup',e=>{if(drag?.id===e.pointerId){const tap=!dr
 canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(11,Math.min(65,zoom+e.deltaY*.018));},{passive:false});$('cameraReset').onclick=()=>{window.surveyView=false;yaw=.15;pitch=.62;zoom=20;};
 function resize(){renderer.setSize(host.clientWidth,host.clientHeight,false);camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();}window.addEventListener('resize',resize);resize();
 function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000||0,.04);last=now;time+=dt;let dx=0,dy=0;
-if(!$('shop').open){const sx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));const sy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));dx=sx*Math.cos(yaw)+sy*Math.sin(yaw);dy=-sx*Math.sin(yaw)+sy*Math.cos(yaw);if(keys.has('q'))yaw+=dt;if(keys.has('r'))yaw-=dt;}else clear();
+if(!$('shop').open){let sx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));let sy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(joyActive){sx=joyX;sy=joyY;}dx=sx*Math.cos(yaw)+sy*Math.sin(yaw);dy=-sx*Math.sin(yaw)+sy*Math.cos(yaw);if(keys.has('q'))yaw+=dt;if(keys.has('r'))yaw-=dt;}else clear();
 if(Math.hypot(dx,dy)>.1){walkPath=[];clickRing.visible=false;}else if(!$('shop').open&&walkPath.length){const p=walkPath[0],d=Math.hypot(p.x-world.x,p.y-world.y),reach=Math.max(4,(keys.has('shift')?240:140)*dt);if(d<=reach){world.x=p.x;world.y=p.y;walkPath.shift();if(!walkPath.length)clickRing.visible=false;}else{dx=(p.x-world.x)/d;dy=(p.y-world.y)/d;}}
 const moving=Math.hypot(dx,dy)>.1;if(moving){window.surveyView=false;let baseSp=(keys.has('shift')?240:140);
 if(speedBoostUntil>time)baseSp*=1.6;
@@ -575,7 +575,18 @@ else{$('vehicleBtn').classList.remove('active');}
 updateSteam(time);district.update(time,dt);const pulse=marketLife.update(time,dt);if(Math.floor(time)%2===0)$('marketPulse').textContent='Nhịp chợ · '+pulse.active+' NPC hoạt động';updateMiniMap(time);const surveyText=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';if($('viewAll').textContent!==surveyText)$('viewAll').textContent=surveyText;$('viewAll').setAttribute('aria-pressed',String(!!window.surveyView));$('placeLabel').innerHTML=(window.surveyView?'TOÀN CẢNH CHỢ ĐẦU MỐI':district.zone(world.x,world.y))+'<small>07:15 · Chợ đầu mối Bình An</small>';const names=[...signs,'Nhà của má','Sạp của con','Kho giao nhận',...extraPlaces.map(p=>p.name)];$('interact').disabled=near<0;$('interact').innerHTML=near<0?'<kbd>E</kbd> Đến gần sạp':'<kbd>E</kbd> '+(near===5?'Về nhà':near===6?'Mở sạp':near===7?'Nhận hàng':near>=8?'Ghé vào':'Nói chuyện');$('worldHint').textContent=near<0?'Bấm để đi · Kéo để xoay camera':names[near];
 const target=window.getNavigationTarget?.()??0;const waypoint=window.customWaypoint;if(waypoint&&Math.hypot(world.x-waypoint.x,world.y-waypoint.y)<85)window.customWaypoint=null;const dest=waypoint?{x:waypoint.x,y:waypoint.y,w:0,h:0}:locations[target]||locations[0];marker.position.set(toX(dest.x+dest.w/2),.12,toZ(waypoint?dest.y:target===5?dest.y-40:dest.y+dest.h+45));pin.position.y=1+Math.sin(time*3)*.12;ring.rotation.z=time*.25;$('destinationHint').textContent=(waypoint?.name||names[target]||'Sạp hàng')+' · '+Math.round(distance(dest,world.x,world.y)/40)+'m';
 const business=window.getMyBusiness?.();const nextLabel=business?business.stock+' bó rau · '+business.price+'K/bó':'Mở sạp từ cấp 3';customer.visible=!!business;if(nextLabel!==businessLabel){businessLabel=nextLabel;const img=stockLabel.material.map.image,cx=img.getContext('2d');cx.clearRect(0,0,img.width,img.height);cx.fillStyle='#fff5df';cx.beginPath();cx.roundRect(0,0,384,80,24);cx.fill();cx.font='bold 29px sans-serif';cx.fillStyle='#365f52';cx.textAlign='center';cx.fillText(nextLabel,192,51);stockLabel.material.map.needsUpdate=true;}const online=window.getOnlinePeers?.()||[];if(time-lastPeersCheck>.8){lastPeersCheck=time;for(const p of online)if(!peers.has(p.publicId)){const m=person('#6c9fa3');floatingLabel(m,p.name,2.55);scene.add(m);peers.set(p.publicId,m);}for(const [id,m] of peers)if(!online.some(p=>p.publicId===id)){scene.remove(m);peers.delete(id);}}
-for(const p of online){const m=peers.get(p.publicId);if(!m)continue;const tx=toX(p.x),tz=toZ(p.y);const dd=Math.hypot(tx-m.position.x,tz-m.position.z);if(dd>30)m.position.set(tx,0,tz);else{m.rotation.y=Math.atan2(tx-m.position.x,tz-m.position.z);m.position.x=THREE.MathUtils.damp(m.position.x,tx,6,dt);m.position.z=THREE.MathUtils.damp(m.position.z,tz,6,dt);}animatePerson(m,time,dd>.15);}
+for(const p of online){const m=peers.get(p.publicId);if(!m)continue;const tx=toX(p.x),tz=toZ(p.y);const dd=Math.hypot(tx-m.position.x,tz-m.position.z);
+if(!m.userData.peerVehicle){
+  const pv=baGac(m, 0, 0, 0, '#2e86c1');
+  pv.scale.set(0.85, 0.85, 0.85);
+  pv.position.set(0, 0, 0.4);
+  pv.visible=false;
+  m.userData.peerVehicle=pv;
+}
+const isDrivingFast = dd > 0.32;
+if(m.userData.peerVehicle) m.userData.peerVehicle.visible = isDrivingFast;
+if(dd>30)m.position.set(tx,0,tz);else{m.rotation.y=Math.atan2(tx-m.position.x,tz-m.position.z);m.position.x=THREE.MathUtils.damp(m.position.x,tx,6,dt);m.position.z=THREE.MathUtils.damp(m.position.z,tz,6,dt);}
+animatePerson(m,time,dd>.15);}
 
 if(isRaining){
   rainSystem.position.set(avatar.position.x,0,avatar.position.z);
@@ -611,6 +622,88 @@ sun.target.position.copy(avatar.position);renderer.render(scene,camera);
 }
 camera.position.set(toX(world.x)+3,14,toZ(world.y)+17);$('loading3d').remove();requestAnimationFrame(frame);
 window.visit3d=i=>{window.dispatchEvent(new CustomEvent('visit-stall',{detail:i}));};
+
+
+host.insertAdjacentHTML('beforeend', `
+  <div id="virtualJoystick"><div id="joystickKnob"></div></div>
+  <div id="quickChatBar">
+    <button class="chat-pill" data-msg="👋 Chào bạn!">👋 Chào bạn</button>
+    <button class="chat-pill" data-msg="🛵 Lên xe tui chở!">🛵 Lên xe tui chở</button>
+    <button class="chat-pill" data-msg="🥬 Mua rau sạp tui nè!">🥬 Mua ủng hộ</button>
+    <button class="chat-pill" data-msg="🔥 Đua xe ba gác đê!">🔥 Đua xe ba gác</button>
+    <button class="chat-pill" data-msg="☕ Đi uống cà phê hông?">☕ Đi cà phê</button>
+  </div>
+`);
+let joyX=0, joyY=0, joyActive=false;
+const joyWrap=$('virtualJoystick'), joyKnob=$('joystickKnob');
+if(joyWrap && joyKnob){
+  const handleTouch=(e)=>{
+    const touch=Array.from(e.touches).find(t=>t.target===joyWrap || t.target===joyKnob || Math.hypot(t.clientX-(joyWrap.offsetLeft+60), t.clientY-(joyWrap.offsetTop+60))<90);
+    if(!touch)return;
+    const rect=joyWrap.getBoundingClientRect();
+    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    const dx=touch.clientX-cx, dy=touch.clientY-cy;
+    const dist=Math.hypot(dx,dy), maxR=42;
+    const angle=Math.atan2(dy,dx);
+    const clampedDist=Math.min(dist,maxR);
+    joyKnob.style.transform=`translate(${Math.cos(angle)*clampedDist}px, ${Math.sin(angle)*clampedDist}px)`;
+    joyX=clampedDist>8?dx/maxR:0;
+    joyY=clampedDist>8?dy/maxR:0;
+    joyActive=true;
+  };
+  const resetJoy=()=>{
+    joyKnob.style.transform='translate(0px, 0px)';
+    joyX=0; joyY=0; joyActive=false;
+  };
+  joyWrap.addEventListener('touchstart',e=>{e.preventDefault();handleTouch(e);},{passive:false});
+  joyWrap.addEventListener('touchmove',e=>{e.preventDefault();handleTouch(e);},{passive:false});
+  joyWrap.addEventListener('touchend',resetJoy);
+  joyWrap.addEventListener('touchcancel',resetJoy);
+}
+
+// 3D Speech Bubble generator for players
+function showSpeechBubble(targetGroup, text){
+  if(targetGroup.userData.bubbleSprite){
+    targetGroup.remove(targetGroup.userData.bubbleSprite);
+  }
+  const canvas=document.createElement('canvas');canvas.width=380;canvas.height=90;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();ctx.roundRect(10,5,360,65,18);ctx.fill();
+  ctx.beginPath();ctx.moveTo(180,70);ctx.lineTo(200,70);ctx.lineTo(190,85);ctx.fill();
+  ctx.strokeStyle='#2c3e50';ctx.lineWidth=4;ctx.stroke();
+  ctx.font='bold 27px sans-serif';ctx.fillStyle='#2c3e50';ctx.textAlign='center';
+  ctx.fillText(text, 190, 48);
+  const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false}));
+  sp.scale.set(3.2,.75,1);sp.position.set(0,3.15,0);
+  targetGroup.add(sp);
+  targetGroup.userData.bubbleSprite=sp;
+  setTimeout(()=>{
+    if(targetGroup.userData.bubbleSprite===sp){
+      targetGroup.remove(sp);
+      targetGroup.userData.bubbleSprite=null;
+    }
+  },5500);
+}
+
+document.querySelectorAll('.chat-pill').forEach(btn=>{
+  btn.onclick=()=>{
+    const msg=btn.dataset.msg;
+    marketAudio.playChatChime?.();
+    showSpeechBubble(avatar, msg);
+    window.dispatchEvent(new CustomEvent('market-toast',{detail:'💬 Bạn: '+msg}));
+  };
+});
+
+window.showCoinFloating=(amount)=>{
+  marketAudio.playCoinTing?.();
+  const el=document.createElement('div');
+  el.className='coin-popup';
+  el.textContent=`+${amount}K 💰`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1500);
+};
 
 function mapDraw(c){const cx=c.getContext('2d'),w=c.width,h=c.height,sx=w/4800,sy=h/3600;cx.fillStyle='#e6e5cd';cx.fillRect(0,0,w,h);cx.fillStyle='#b7c6b0';cx.fillRect(120*sx,150*sy,1400*sx,1100*sy);for(const r of district.roads){cx.fillStyle='#9baea1';cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}for(const [i,b] of district.halls.entries()){cx.fillStyle=b.color;cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);cx.fillStyle='#fff5d8';cx.font=`bold ${w>300?22:10}px sans-serif`;cx.textAlign='center';cx.fillText('ABCD'[i],(b.x+b.w/2)*sx,(b.y+b.h/2)*sy+4);}cx.fillStyle='#a7b4a3';cx.fillRect(120*sx,1810*sy,1320*sx,1450*sy);cx.fillStyle='#879f8e';cx.fillRect(3040*sx,2860*sy,520*sx,280*sy);cx.fillStyle='#6c8c73';for(const b of locations.slice(0,7))cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);for(const v of district.vehicles){cx.fillStyle='#c69765';cx.fillRect(v.x*sx-2,v.y*sy-2,4,4);}if(window.customWaypoint){cx.strokeStyle='#ba9553';cx.lineWidth=2;cx.beginPath();cx.arc(window.customWaypoint.x*sx,window.customWaypoint.y*sy,6,0,Math.PI*2);cx.stroke();}cx.fillStyle='#c9794d';cx.beginPath();cx.arc(world.x*sx,world.y*sy,w>300?6:4,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff5dc';cx.lineWidth=2;cx.stroke();}
 host.insertAdjacentHTML('beforeend','<div id="districtMap"><canvas id="miniMap" width="180" height="135" aria-label="Bản đồ nhỏ: khu dân sinh, bốn nhà lồng và bãi xe"></canvas><button id="openMap"><kbd>M</kbd> Bản đồ khu chợ ↗</button><button id="viewAll">Toàn cảnh khu chợ</button></div>');$('openMap').onclick=openMap;$('viewAll').onclick=()=>{window.surveyView=!window.surveyView;$('viewAll').textContent=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';};let mapLast=-1;
