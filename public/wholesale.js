@@ -5,104 +5,100 @@ import * as THREE from './three.module.min.js';
 
 // ==================== BẾN SÔNG CHỢ NỔI & KÊNH NƯỚC MIỀN TÂY ====================
 function buildRiverCanal(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles) {
-  // River water body
-  const waterGeo = new THREE.PlaneGeometry(36, 110);
+  // River water body positioned openly on the west
+  const waterGeo = new THREE.PlaneGeometry(50, 140);
   const waterMat = new THREE.MeshStandardMaterial({
     color: '#1a5276',
-    roughness: 0.12,
-    metalness: 0.65,
+    roughness: 0.1,
+    metalness: 0.7,
     transparent: true,
-    opacity: 0.92
+    opacity: 0.95
   });
   const water = new THREE.Mesh(waterGeo, waterMat);
   water.rotation.x = -Math.PI / 2;
-  water.position.set(-27, 0.08, 20);
+  water.position.set(-34, 0.05, 25);
   scene.add(water);
 
-  // Stone embankment wall along x = -10
-  box(scene, 1.4, 1.6, 95, '#5d6d7e', -9.5, 0.8, 20);
-  box(scene, 1.8, 0.25, 95, '#85929e', -9.5, 1.65, 20);
-  // Railing along embankment
-  for(let z = -24; z <= 64; z += 3.5){
-    cyl(scene, 0.05, 1.1, '#2c3e50', -9.1, 2.1, z);
-    box(scene, 0.06, 0.08, 3.6, '#34495e', -9.1, 2.5, z + 1.75);
-    box(scene, 0.06, 0.08, 3.6, '#34495e', -9.1, 1.9, z + 1.75);
+  // Stone promenade along the river (x = -13 in Three.js = x = 280 in world)
+  box(scene, 1.2, 0.4, 110, '#7f8c8d', -13, 0.2, 25);
+  
+  // Railing with generous OPEN GAPS for access to piers
+  for(let z = -25; z <= 75; z += 3.5){
+    // Leave 8-meter open gaps at z = 0, 25, 50 for direct walking onto piers
+    if (Math.abs(z - 0) < 4.5 || Math.abs(z - 26) < 4.5 || Math.abs(z - 52) < 4.5) continue;
+    cyl(scene, 0.04, 1.0, '#2c3e50', -12.8, 0.7, z);
+    box(scene, 0.05, 0.06, 3.6, '#34495e', -12.8, 1.1, z + 1.75);
+    box(scene, 0.05, 0.06, 3.6, '#34495e', -12.8, 0.6, z + 1.75);
   }
-  obstacles.push({ x: 300, y: 150, w: 90, h: 3200 });
 
-  // Wooden Piers (Cầu tàu bến sông)
-  for(const pz of [2, 28, 52]){
+  // 3 Wide Open Wooden Piers extending into water (no blocking walls!)
+  for(const pz of [0, 26, 52]){
     const pier = new THREE.Group();
-    pier.position.set(-15, 0.75, pz);
-    box(pier, 11, 0.22, 3.2, '#795548', 0, 0, 0);
-    // Pier posts
-    for(const px of [-4.5, 0, 4.5]){
-      cyl(pier, 0.14, 2.2, '#4e342e', px, -1, -1.4);
-      cyl(pier, 0.14, 2.2, '#4e342e', px, -1, 1.4);
+    pier.position.set(-20, 0.28, pz);
+    box(pier, 14, 0.2, 4.5, '#795548', 0, 0, 0); // Wide 4.5m pier deck!
+    // Pier pilings
+    for(const px of [-5.5, 0, 5.5]){
+      cyl(pier, 0.16, 2.2, '#4e342e', px, -1, -1.9);
+      cyl(pier, 0.16, 2.2, '#4e342e', px, -1, 1.9);
     }
-    label(pier, 'BẾN TÀU CHỢ BÌNH AN', 0, 1.2, 0, 4.2, '#5d4037', '#ffeb3b');
+    label(pier, 'BẾN TÀU CHỢ NỔI', 0, 1.4, 0, 4.5, '#5d4037', '#fff');
     scene.add(pier);
   }
 
-  // Wooden Boats / Ghe Bầu & Xuồng Ba Lá
+  // Wooden Boats
   function woodenBoat(x, z, rot, cargoType){
     const b = new THREE.Group();
-    b.position.set(x, 0.35, z);
+    b.position.set(x, 0.25, z);
     b.rotation.y = rot;
-    // Boat hull
-    box(b, 2.2, 0.8, 7.5, '#6d4c41', 0, 0, 0);
-    box(b, 1.9, 0.7, 7.1, '#4e342e', 0, 0.1, 0);
-    box(b, 0.3, 0.75, 1.6, '#3e2723', 0, 0.45, 3.9); // bow
-    box(b, 0.3, 0.75, 1.6, '#3e2723', 0, 0.45, -3.9); // stern
-    // Cargo on boat
+    box(b, 2.4, 0.8, 8.5, '#6d4c41', 0, 0, 0);
+    box(b, 2.1, 0.7, 8.1, '#4e342e', 0, 0.1, 0);
+    box(b, 0.35, 0.8, 1.8, '#3e2723', 0, 0.45, 4.3);
+    box(b, 0.35, 0.8, 1.8, '#3e2723', 0, 0.45, -4.3);
     if(cargoType === 'watermelon'){
-      for(let r = -2; r <= 2; r += 0.7){
-        for(let c = -0.5; c <= 0.5; c += 0.5){
+      for(let r = -2.5; r <= 2.5; r += 0.8){
+        for(let c = -0.6; c <= 0.6; c += 0.6){
           const m = sphere(b, 0.28, '#196f3d', c, 0.45, r);
           m.scale.set(1, 1.25, 1);
         }
       }
     } else if(cargoType === 'coconut'){
-      for(let r = -2.2; r <= 2.2; r += 0.8){
-        sphere(b, 0.32, '#d4ac0d', -0.3, 0.5, r);
-        sphere(b, 0.32, '#b7950b', 0.3, 0.5, r);
-        cyl(b, 0.2, 0.9, '#27ae60', 0, 0.6, r + 0.3).rotation.x = Math.PI/3; // banana bunch
+      for(let r = -2.5; r <= 2.5; r += 0.9){
+        sphere(b, 0.34, '#d4ac0d', -0.35, 0.5, r);
+        sphere(b, 0.34, '#b7950b', 0.35, 0.5, r);
       }
     } else if(cargoType === 'flowers'){
-      for(let r = -2; r <= 2; r += 0.9){
-        cyl(b, 0.35, 0.4, '#c0392b', -0.35, 0.4, r);
-        sphere(b, 0.36, '#f1c40f', -0.35, 0.7, r);
-        cyl(b, 0.35, 0.4, '#c0392b', 0.35, 0.4, r);
-        sphere(b, 0.36, '#e67e22', 0.35, 0.7, r);
+      for(let r = -2.5; r <= 2.5; r += 1.0){
+        cyl(b, 0.38, 0.4, '#c0392b', -0.4, 0.4, r);
+        sphere(b, 0.38, '#f1c40f', -0.4, 0.75, r);
+        cyl(b, 0.38, 0.4, '#c0392b', 0.4, 0.4, r);
+        sphere(b, 0.38, '#e67e22', 0.4, 0.75, r);
       }
     }
-    // Palm leaf arched canopy on boat
-    const canopy = mesh(b, 'CylinderGeometry', [1.2, 1.2, 3.2, 8, 1, true, 0, Math.PI], '#8d6e63', 0, 0.9, -0.6);
+    const canopy = mesh(b, 'CylinderGeometry', [1.3, 1.3, 3.5, 8, 1, true, 0, Math.PI], '#8d6e63', 0, 0.95, -0.6);
     canopy.rotation.z = Math.PI / 2;
     scene.add(b);
   }
 
-  woodenBoat(-21, 5, 0.15, 'watermelon');
-  woodenBoat(-23, 20, -0.1, 'coconut');
-  woodenBoat(-20, 38, 0.08, 'flowers');
-  woodenBoat(-22, 55, -0.2, 'watermelon');
+  woodenBoat(-29, 0, 0.08, 'watermelon');
+  woodenBoat(-30, 26, -0.05, 'coconut');
+  woodenBoat(-29, 52, 0.1, 'flowers');
 
-  // Coconut palms along riverbank
-  for(let z = -20; z <= 60; z += 12){
+  // Coconut palms spaced comfortably apart
+  for(let z = -20; z <= 70; z += 18){
     const palm = new THREE.Group();
-    palm.position.set(-8.2, 0, z);
-    cyl(palm, 0.2, 4.5, '#795548', 0, 2.2, 0);
-    palm.rotation.z = 0.15; // leaning over water
+    palm.position.set(-11.5, 0, z);
+    cyl(palm, 0.22, 5.0, '#795548', 0, 2.5, 0);
+    palm.rotation.z = 0.18;
     for(let i = 0; i < 6; i++){
-      const frond = box(palm, 2.4, 0.08, 0.45, '#2e7d32', 1.2 * Math.cos(i * Math.PI / 3), 4.5, 1.2 * Math.sin(i * Math.PI / 3));
+      const frond = box(palm, 2.8, 0.08, 0.5, '#2e7d32', 1.4 * Math.cos(i * Math.PI / 3), 5.0, 1.4 * Math.sin(i * Math.PI / 3));
       frond.rotation.y = i * Math.PI / 3;
       frond.rotation.z = -0.35;
     }
     scene.add(palm);
   }
+  // Only stop player at deep water edge (x = 40 in world coordinates)
+  obstacles.push({ x: 20, y: 100, w: 30, h: 3400 });
 }
-
-// ==================== THÁP ĐỒNG HỒ TRUNG TÂM (CENTRAL CLOCK TOWER) ====================
 function buildClockTower(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles) {
   const g = new THREE.Group();
   g.position.set(toX(1450), 0, toZ(1280));
@@ -133,7 +129,7 @@ function buildClockTower(scene, box, cyl, sphere, label, mat, toX, toZ, obstacle
   sphere(g, 0.18, '#f1c40f', 0.6, 14.4, 0.02); // star
   label(g, 'THÁP ĐỒNG HỒ BÌNH AN', 0, 7.8, 1.75, 3.2, '#935116', '#fff');
   scene.add(g);
-  obstacles.push({ x: 1350, y: 1180, w: 200, h: 200 });
+  obstacles.push({ x: 1420, y: 1250, w: 60, h: 60 }); // Small core only, wide roundabout lane around!
 }
 
 // ==================== KHU CHỢ NHÀ LỒNG SỐ 2 (COVERED MARKET PAVILION 2) ====================
@@ -221,7 +217,7 @@ function buildSecondMarketPavilion(scene, box, cyl, sphere, label, person, mat, 
     }
 
     g.add(sg);
-    obstacles.push({ x: 850 + (s.x - 2.1)*40, y: 1650 + (s.z - 1)*40, w: 170, h: 80 });
+    obstacles.push({ x: 850 + (s.x - 1.2)*40, y: 1650 + (s.z - 0.5)*40, w: 100, h: 45 });
   });
 
   scene.add(g);
@@ -265,7 +261,7 @@ function buildFoodPlaza(scene, box, cyl, sphere, label, person, mat, toX, toZ, o
       }
     }
     g.add(cart);
-    obstacles.push({ x: 650 + (s.x - 1.8)*40, y: 2050 - 80, w: 140, h: 70 });
+    obstacles.push({ x: 650 + (s.x - 1.0)*40, y: 2050 - 50, w: 80, h: 40 });
   });
 
   // Hanging glowing lanterns overhead across food plaza
@@ -311,7 +307,7 @@ function buildHistoricTownhouses(scene, box, cyl, sphere, label, mat, toX, toZ, 
     box(hg, 1.4, 1.6, 0.1, '#1e8449', 1.2, 7.2, 2.3);
     label(hg, s.name, 0, 3.0, 2.4, 4.5, '#fff', s.color);
     g.add(hg);
-    obstacles.push({ x: 1850 + (idx * 5.6 - 16)*40, y: 750 - 90, w: 210, h: 180 });
+    obstacles.push({ x: 1850 + (idx * 5.6 - 16)*40, y: 750 - 50, w: 140, h: 90 });
   });
 
   scene.add(g);

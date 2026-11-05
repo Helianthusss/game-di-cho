@@ -11,7 +11,7 @@ host.insertAdjacentHTML('afterend','<div class="game-controls"><div class="dpad"
 let renderer;
 try{renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,powerPreference:'high-performance'});}catch{ $('loading3d').innerHTML='<strong>Chưa mở được cảnh 3D</strong><span>Trình duyệt cần WebGL. Thử bật tăng tốc đồ họa hoặc dùng trình duyệt khác.</span>';throw Error('WebGL unavailable');}
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
-const scene=new THREE.Scene();scene.background=new THREE.Color('#d9e7df');scene.fog=new THREE.Fog('#d9e7df',75,185);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#d9e7df');scene.fog=new THREE.Fog('#d9e7df',95,280);
 const camera=new THREE.PerspectiveCamera(48,1,.1,240);let yaw=.15,pitch=.62,zoom=20;
 scene.add(new THREE.HemisphereLight('#ffefd1','#7f9b83',2.4));const sun=new THREE.DirectionalLight('#fff0ce',3.4);sun.position.set(-15,26,14);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-25,right:25,top:22,bottom:-22,near:.1,far:65});sun.shadow.normalBias=.035;sun.shadow.bias=-.00015;scene.add(sun);scene.add(sun.target);
 const mats=new Map(),geos=new Map();function mat(color,roughness=.8){if(!mats.has(color))mats.set(color,new THREE.MeshStandardMaterial({color,roughness}));return mats.get(color);}
@@ -597,7 +597,7 @@ if(drivable.mounted){
   drivable.mesh.rotation.y=drivable.yaw;
   marketAudio.throttleEngine?.(moving);
 }
-const free=(x,y)=>x>60&&x<4740&&y>270&&y<3540&&locations.every(b=>distance(b,x,y)>20)&&district.obstacles.every(b=>distance(b,x,y)>20);if(free(world.x+dx*speed,world.y))world.x+=dx*speed;if(free(world.x,world.y+dy*speed))world.y+=dy*speed;avatar.rotation.y=Math.atan2(dx,dy);}
+const free=(x,y)=>x>50&&x<4750&&y>200&&y<3550&&locations.every(b=>distance(b,x,y)>11)&&district.obstacles.every(b=>distance(b,x,y)>9);if(free(world.x+dx*speed,world.y))world.x+=dx*speed;if(free(world.x,world.y+dy*speed))world.y+=dy*speed;avatar.rotation.y=Math.atan2(dx,dy);}
 avatar.position.set(toX(world.x),0,toZ(world.y));animatePerson(avatar,time,moving);
 let closest=-1,dist=105;locations.forEach((b,i)=>{const d=distance(b,world.x,world.y);if(d<dist){dist=d;closest=i;}});
 if(closest<0){extraPlaces.forEach((b,j)=>{const d=distance(b,world.x,world.y);if(d<90&&d<dist){dist=d;closest=8+j;}});}
@@ -655,7 +655,7 @@ if(cameraMode===0||window.surveyView){
 }
 sun.target.position.copy(avatar.position);renderer.render(scene,camera);
 }
-camera.position.set(toX(world.x)+3,14,toZ(world.y)+17);$('loading3d').remove();requestAnimationFrame(frame);
+camera.position.set(toX(world.x)+4,16,toZ(world.y)+22);yaw=.12;pitch=.54;zoom=26;$('loading3d').remove();requestAnimationFrame(frame);
 window.visit3d=i=>{window.dispatchEvent(new CustomEvent('visit-stall',{detail:i}));};
 
 
