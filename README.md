@@ -4,7 +4,8 @@ Browser-based 3D Vietnamese market game with persistent profiles and a shared pr
 
 ## Play
 
-- WASD / arrow keys: move relative to the camera; Shift: run.
+- Click/tap the ground: walk to the point using obstacle-aware pathfinding. Drag rotates the camera.
+- WASD / arrow keys: move relative to the camera and cancel the automatic route; Shift: run.
 - Drag the scene to rotate; wheel to zoom; Q/R also rotate on desktop.
 - E: interact with the nearest stall, recipient or personal business counter.
 - Tap a shopping-list item to guide the gold marker to its stall.
