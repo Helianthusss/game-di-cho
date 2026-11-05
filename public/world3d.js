@@ -219,7 +219,7 @@ function stool(g,x,z,color='#bd6551'){cyl(g,.31,.11,color,x,.55,z);for(const dx 
 function umbrella(g,x,z,color){cyl(g,.045,3.3,'#96744e',x,1.65,z);mesh(g,'ConeGeometry',[1.75,.7,8],color,x,3.7,z);}
 function scooter(x,z,color){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const zz of [-.6,.6]){const tire=mesh(g,'TorusGeometry',[.28,.08,5,12],'#3d4946',0,.35,zz);tire.rotation.y=Math.PI/2;}box(g,.45,.6,.85,color,0,.65,0);box(g,.47,.14,.7,'#4f4b40',0,1,-.1);box(g,.4,.7,.13,color,0,.88,.6);box(g,.7,.06,.06,'#65766d',0,1.28,.65);sphere(g,.12,'#fbebbc',0,1,.71);g.rotation.y=-.35;}
 // Ground texture is drawn locally, so no external asset requests are needed.
-const groundCanvas=document.createElement('canvas');groundCanvas.width=groundCanvas.height=256;const gc=groundCanvas.getContext('2d');gc.fillStyle='#c7b99c';gc.fillRect(0,0,256,256);for(let y=0;y<256;y+=64)for(let x=0;x<256;x+=64){gc.fillStyle=(x+y)%128?'#c6b69a':'#cebea2';gc.fillRect(x+1,y+1,62,62);gc.fillStyle='#b8a88e';gc.fillRect(x+6,y+7,3,2);}const groundTex=new THREE.CanvasTexture(groundCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(36,27);groundTex.colorSpace=THREE.SRGBColorSpace;const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,90),new THREE.MeshStandardMaterial({map:groundTex,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(40,0,30);ground.receiveShadow=true;scene.add(ground);
+const groundCanvas=document.createElement('canvas');groundCanvas.width=groundCanvas.height=256;const gc=groundCanvas.getContext('2d');gc.fillStyle='#c7b99c';gc.fillRect(0,0,256,256);for(let y=0;y<256;y+=64)for(let x=0;x<256;x+=64){gc.fillStyle=(x+y)%128?'#c6b69a':'#cebea2';gc.fillRect(x+1,y+1,62,62);gc.fillStyle='#b8a88e';gc.fillRect(x+6,y+7,3,2);}const groundTex=new THREE.CanvasTexture(groundCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(84,66);groundTex.colorSpace=THREE.SRGBColorSpace;const ground=new THREE.Mesh(new THREE.PlaneGeometry(280,220),new THREE.MeshStandardMaterial({map:groundTex,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(50,0,35);ground.receiveShadow=true;scene.add(ground);
 const toX=x=>(x-800)/40,toZ=y=>(y-600)/40;
 // Townhouses, shutters, balconies and hanging signs around the market.
 for(let i=0;i<9;i++){const g=new THREE.Group();g.position.set(-20+i*5,0,-11);scene.add(g);const c=['#d9c396','#c0c6a1','#dcad90','#c2c7b1'][i%4];box(g,4.8,5,3.7,c,0,2.5,0);box(g,5,1,4,'#a96952',0,5.1,0);for(let z=-1.8;z<2;z+=.4)box(g,5,.07,.08,'#c48a69',0,5.63,z);box(g,3.7,2.4,.1,'#648b82',0,1.2,1.9);for(let x=-1.7;x<1.8;x+=.24)box(g,.035,2.3,.04,'#96aa93',x,1.2,1.98);box(g,1.3,1.2,.1,'#577e79',0,3.8,1.9);box(g,1.7,.12,.5,'#e9d5b1',0,3.15,2.05);label(g,['TẠP HÓA','BÚN RIÊU','CÀ PHÊ','TIỆM MAY'][i%4],0,2.8,2,3.8);}
@@ -468,6 +468,12 @@ function distance(b,x,y){return Math.hypot(Math.max(b.x-x,0,x-b.x-b.w),Math.max(
 
 let speedBoostUntil=0, banhMiBonus=0;
 const extraPlaces=[
+  {x:650,y:1950,w:120,h:100,name:'Quán Bún Bò Huế Cô Nhung',type:'food_bunbo'},
+  {x:650,y:2050,w:120,h:100,name:'Quán Bánh Xèo Miền Tây',type:'food_banhxeo'},
+  {x:650,y:2150,w:120,h:100,name:'Quầy Chè Ba Màu Cốt Dừa',type:'food_che'},
+  {x:320,y:1250,w:120,h:100,name:'Ghe Dưa Hấu Bến Sông',type:'boat_watermelon'},
+  {x:1450,y:1280,w:120,h:100,name:'Quảng Trường Tháp Đồng Hồ',type:'clock_tower'},
+  {x:850,y:1650,w:160,h:120,name:'Nhà Lồng 2 · Vựa Sầu Riêng & Thịt Tươi',type:'pavilion2'},
   {x:520,y:1180,w:90,h:90,name:'Xe Nước Mía Siêu Sạch',type:'food_nuocmia'},
   {x:820,y:1180,w:90,h:90,name:'Tiệm Bánh Mì Sài Gòn',type:'food_banhmi'},
   {x:1120,y:1180,w:90,h:90,name:'Quán Cà Phê Cóc & Trà Đá',type:'food_caphe'},
@@ -479,7 +485,36 @@ const extraPlaces=[
 
 function openExtraPlace(place){
   const content=$('dialogContent');
-  if(place.type==='food_nuocmia'){
+  if(place.type==='food_bunbo'){
+    content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC ĐÊM BÌNH AN</p><h2>🍜 Quán Bún Bò Huế Cô Nhung</h2><p class="vendor-quote">“Tô bún bò bốc khói nghi ngút, nạm bò mềm thơm, chả cua đậm đà ớt sa tế cay nồng!”</p><div class="reward-row"><b>⚡ Tăng tốc +80%</b><b>Khí thế hừng hực trong 90 giây</b></div><div class="actions"><button class="primary" id="buyBunBo">Ăn tô đặc biệt · 25K</button><button id="leaveFood">Để lát ghé</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyBunBo').onclick=()=>{speedBoostUntil=time+90;$('shop').close();window.showCoinFloating?.(5);window.dispatchEvent(new CustomEvent('market-toast',{detail:'🍜 Ăn tô bún bò no căng bụng! Chạy nhanh như gió!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+    return;
+  }else if(place.type==='food_banhxeo'){
+    content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC ĐÊM BÌNH AN</p><h2>🥞 Quán Bánh Xèo Miền Tây</h2><p class="vendor-quote">“Bánh xèo viền giòn rụm, tôm thịt giá đỗ thơm phức, cuốn rau rừng chấm nước mắm chua ngọt.”</p><div class="reward-row"><b>🥪 No nê thỏa thích</b><b>Thưởng thêm +30K khi giao đơn</b></div><div class="actions"><button class="primary" id="buyBanhXeo">Ăn bánh xèo · 20K</button><button id="leaveFood">Để lát ghé</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyBanhXeo').onclick=()=>{banhMiBonus=5;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'🥞 Bánh xèo giòn thơm nức mũi! Tăng thưởng tiền boa khi làm việc!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+    return;
+  }else if(place.type==='boat_watermelon'){
+    content.innerHTML=`<p class="eyebrow">BẾN SÔNG CHỢ NỔI MIỀN TÂY</p><h2>🍉 Ghe Dưa Hấu Bến Sông</h2><p class="vendor-quote">“Dưa hấu Long An ngọt lịm vừa cập bến sông sáng sớm, vỏ mỏng ruột đỏ au!”</p><div class="business-stats"><b>Nhập sỉ theo ghe</b><b>Giá gốc 15K/trái</b><b>Lãi x2 khi bán lẻ</b></div><div class="actions"><button class="primary" id="buyWatermelon">Mua cặp dưa hấu · 25K</button><button id="leaveFood">Ngắm sông</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('buyWatermelon').onclick=()=>{drivableCargo.visible=true;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'🍉 Đã chất dưa hấu lên xe ba gác! Chở về sạp bán kiếm lời!'}));};
+    $('leaveFood').onclick=()=>$('shop').close();
+    return;
+  }else if(place.type==='clock_tower'){
+    content.innerHTML=`<p class="eyebrow">ĐỊA DANH LỊCH SỬ CHỢ BÌNH AN</p><h2>🕰️ Tháp Đồng Hồ Trung Tâm</h2><p class="vendor-quote">“Biểu tượng trung tâm kết nối giữa khu chợ dân sinh, bến sông chợ nổi và 4 nhà lồng đầu mối.”</p><div class="actions"><button class="primary" id="viewWholeMarket">Mở bản đồ toàn cảnh</button><button id="leaveFood">Đóng</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('viewWholeMarket').onclick=()=>{$('shop').close();openMap();};
+    $('leaveFood').onclick=()=>$('shop').close();
+    return;
+  }else if(place.type==='pavilion2'){
+    content.innerHTML=`<p class="eyebrow">KHU CHỢ MỚI · NHÀ LỒNG 2</p><h2>🥩 Vựa Sầu Riêng & Thịt Tươi Bác Tư</h2><p class="vendor-quote">“Thịt tươi vừa mổ sáng nay, sầu riêng Ri6 bao ăn từng trái, hoa tươi cúng rằm mới về!”</p><div class="business-stats"><b>8 sạp hàng mới</b><b>Bán buôn giá sỉ</b></div><div class="actions"><button class="primary" id="closePavilion">Dạo xem sạp</button></div>`;
+    if(!$('shop').open)$('shop').showModal();
+    $('closePavilion').onclick=()=>$('shop').close();
+    return;
+  }else if(place.type==='food_nuocmia'){
     content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC BÌNH AN</p><h2>🥤 Xe Nước Mía Siêu Sạch</h2><p class="vendor-quote">“Nước mía ép từ mía tươi nguyên cây, thêm trái tắc thơm lừng mát rượi giải nhiệt!”</p><div class="reward-row"><b>⚡ Tăng tốc độ chạy +60%</b><b>Hiệu lực 60 giây</b></div><div class="actions"><button class="primary" id="buyJuice">Uống 1 ly · 10K</button><button id="leaveFood">Để lát ghé</button></div>`;
     if(!$('shop').open)$('shop').showModal();
     $('buyJuice').onclick=()=>{speedBoostUntil=time+60;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'⚡ Đã uống nước mía mát lạnh! Chạy nhanh hơn 60%!'}));};

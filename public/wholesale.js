@@ -2,6 +2,321 @@ import * as THREE from './three.module.min.js';
 // A fictional wholesale-market district, inspired by Vietnamese market logistics.
 // The original playable neighborhood remains in the northwest corner.
 
+
+// ==================== BẾN SÔNG CHỢ NỔI & KÊNH NƯỚC MIỀN TÂY ====================
+function buildRiverCanal(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles) {
+  // River water body
+  const waterGeo = new THREE.PlaneGeometry(36, 110);
+  const waterMat = new THREE.MeshStandardMaterial({
+    color: '#1a5276',
+    roughness: 0.12,
+    metalness: 0.65,
+    transparent: true,
+    opacity: 0.92
+  });
+  const water = new THREE.Mesh(waterGeo, waterMat);
+  water.rotation.x = -Math.PI / 2;
+  water.position.set(-27, 0.08, 20);
+  scene.add(water);
+
+  // Stone embankment wall along x = -10
+  box(scene, 1.4, 1.6, 95, '#5d6d7e', -9.5, 0.8, 20);
+  box(scene, 1.8, 0.25, 95, '#85929e', -9.5, 1.65, 20);
+  // Railing along embankment
+  for(let z = -24; z <= 64; z += 3.5){
+    cyl(scene, 0.05, 1.1, '#2c3e50', -9.1, 2.1, z);
+    box(scene, 0.06, 0.08, 3.6, '#34495e', -9.1, 2.5, z + 1.75);
+    box(scene, 0.06, 0.08, 3.6, '#34495e', -9.1, 1.9, z + 1.75);
+  }
+  obstacles.push({ x: 300, y: 150, w: 90, h: 3200 });
+
+  // Wooden Piers (Cầu tàu bến sông)
+  for(const pz of [2, 28, 52]){
+    const pier = new THREE.Group();
+    pier.position.set(-15, 0.75, pz);
+    box(pier, 11, 0.22, 3.2, '#795548', 0, 0, 0);
+    // Pier posts
+    for(const px of [-4.5, 0, 4.5]){
+      cyl(pier, 0.14, 2.2, '#4e342e', px, -1, -1.4);
+      cyl(pier, 0.14, 2.2, '#4e342e', px, -1, 1.4);
+    }
+    label(pier, 'BẾN TÀU CHỢ BÌNH AN', 0, 1.2, 0, 4.2, '#5d4037', '#ffeb3b');
+    scene.add(pier);
+  }
+
+  // Wooden Boats / Ghe Bầu & Xuồng Ba Lá
+  function woodenBoat(x, z, rot, cargoType){
+    const b = new THREE.Group();
+    b.position.set(x, 0.35, z);
+    b.rotation.y = rot;
+    // Boat hull
+    box(b, 2.2, 0.8, 7.5, '#6d4c41', 0, 0, 0);
+    box(b, 1.9, 0.7, 7.1, '#4e342e', 0, 0.1, 0);
+    box(b, 0.3, 0.75, 1.6, '#3e2723', 0, 0.45, 3.9); // bow
+    box(b, 0.3, 0.75, 1.6, '#3e2723', 0, 0.45, -3.9); // stern
+    // Cargo on boat
+    if(cargoType === 'watermelon'){
+      for(let r = -2; r <= 2; r += 0.7){
+        for(let c = -0.5; c <= 0.5; c += 0.5){
+          const m = sphere(b, 0.28, '#196f3d', c, 0.45, r);
+          m.scale.set(1, 1.25, 1);
+        }
+      }
+    } else if(cargoType === 'coconut'){
+      for(let r = -2.2; r <= 2.2; r += 0.8){
+        sphere(b, 0.32, '#d4ac0d', -0.3, 0.5, r);
+        sphere(b, 0.32, '#b7950b', 0.3, 0.5, r);
+        cyl(b, 0.2, 0.9, '#27ae60', 0, 0.6, r + 0.3).rotation.x = Math.PI/3; // banana bunch
+      }
+    } else if(cargoType === 'flowers'){
+      for(let r = -2; r <= 2; r += 0.9){
+        cyl(b, 0.35, 0.4, '#c0392b', -0.35, 0.4, r);
+        sphere(b, 0.36, '#f1c40f', -0.35, 0.7, r);
+        cyl(b, 0.35, 0.4, '#c0392b', 0.35, 0.4, r);
+        sphere(b, 0.36, '#e67e22', 0.35, 0.7, r);
+      }
+    }
+    // Palm leaf arched canopy on boat
+    const canopy = mesh(b, 'CylinderGeometry', [1.2, 1.2, 3.2, 8, 1, true, 0, Math.PI], '#8d6e63', 0, 0.9, -0.6);
+    canopy.rotation.z = Math.PI / 2;
+    scene.add(b);
+  }
+
+  woodenBoat(-21, 5, 0.15, 'watermelon');
+  woodenBoat(-23, 20, -0.1, 'coconut');
+  woodenBoat(-20, 38, 0.08, 'flowers');
+  woodenBoat(-22, 55, -0.2, 'watermelon');
+
+  // Coconut palms along riverbank
+  for(let z = -20; z <= 60; z += 12){
+    const palm = new THREE.Group();
+    palm.position.set(-8.2, 0, z);
+    cyl(palm, 0.2, 4.5, '#795548', 0, 2.2, 0);
+    palm.rotation.z = 0.15; // leaning over water
+    for(let i = 0; i < 6; i++){
+      const frond = box(palm, 2.4, 0.08, 0.45, '#2e7d32', 1.2 * Math.cos(i * Math.PI / 3), 4.5, 1.2 * Math.sin(i * Math.PI / 3));
+      frond.rotation.y = i * Math.PI / 3;
+      frond.rotation.z = -0.35;
+    }
+    scene.add(palm);
+  }
+}
+
+// ==================== THÁP ĐỒNG HỒ TRUNG TÂM (CENTRAL CLOCK TOWER) ====================
+function buildClockTower(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles) {
+  const g = new THREE.Group();
+  g.position.set(toX(1450), 0, toZ(1280));
+  // Roundabout island base
+  cyl(g, 7.5, 0.4, '#abb2b9', 0, 0.2, 0);
+  cyl(g, 6.8, 0.3, '#58d68d', 0, 0.4, 0); // grass lawn
+  // Square brick tower body
+  box(g, 3.4, 8.5, 3.4, '#d4ac0d', 0, 4.5, 0);
+  box(g, 3.8, 0.4, 3.8, '#935116', 0, 8.8, 0); // cornice
+  // Upper clock level
+  box(g, 3.1, 2.5, 3.1, '#f9e79f', 0, 10.2, 0);
+  // 4 clock faces
+  for(const rot of [0, Math.PI/2, Math.PI, -Math.PI/2]){
+    const face = cyl(g, 1.05, 0.08, '#ffffff', 0, 10.2, 1.58);
+    face.rotation.x = Math.PI / 2;
+    face.rotation.y = rot;
+    // Clock hands
+    box(g, 0.08, 0.7, 0.05, '#17202a', 0, 10.45, 1.63);
+    box(g, 0.5, 0.08, 0.05, '#17202a', 0.2, 10.2, 1.63);
+  }
+  // 3-tiered pagoda roof (Mái tam cấp ngói đỏ)
+  box(g, 3.8, 0.4, 3.8, '#c0392b', 0, 11.6, 0);
+  box(g, 2.6, 0.4, 2.6, '#a93226', 0, 12.2, 0);
+  box(g, 1.5, 0.4, 1.5, '#922b21', 0, 12.8, 0);
+  cyl(g, 0.06, 2.4, '#f1c40f', 0, 14.1, 0); // spire
+  // Decorative Vietnamese flag on tower
+  box(g, 1.2, 0.8, 0.03, '#e74c3c', 0.6, 14.4, 0);
+  sphere(g, 0.18, '#f1c40f', 0.6, 14.4, 0.02); // star
+  label(g, 'THÁP ĐỒNG HỒ BÌNH AN', 0, 7.8, 1.75, 3.2, '#935116', '#fff');
+  scene.add(g);
+  obstacles.push({ x: 1350, y: 1180, w: 200, h: 200 });
+}
+
+// ==================== KHU CHỢ NHÀ LỒNG SỐ 2 (COVERED MARKET PAVILION 2) ====================
+function buildSecondMarketPavilion(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles) {
+  const g = new THREE.Group();
+  g.position.set(toX(850), 0, toZ(1650));
+  const w = 26, d = 16;
+  // Floor slab
+  box(g, w, 0.18, d, '#d5dbdb', 0, 0.09, 0);
+  // Pillars
+  for(let x = -w/2 + 1; x <= w/2 - 1; x += 6){
+    for(let z = -d/2 + 1; z <= d/2 - 1; z += 7){
+      cyl(g, 0.18, 4.8, '#7f8c8d', x, 2.4, z);
+    }
+  }
+  // Curved corrugated metal roof
+  const roof = box(g, w + 1.2, 0.15, d + 1.2, '#2980b9', 0, 5.0, 0);
+  roof.rotation.x = -0.04;
+  label(g, 'NHÀ LỒNG 2 · KHU THỊT & TRÁI CÂY TƯƠI', 0, 5.6, d/2 + 0.1, 14, '#1b4f72', '#f9e79f', 'HỌP CHỢ CẢ NGÀY · GIÁ BÌNH DÂN');
+  label(g, 'NHÀ LỒNG 2 · KHU THỊT & TRÁI CÂY TƯƠI', 0, 5.6, -d/2 - 0.1, 14, '#1b4f72', '#f9e79f', '', false, Math.PI);
+
+  // 8 Market Stalls inside Pavilion 2
+  const stallSpecs = [
+    { name: 'THỊT HEO NÓNG · BÁC TƯ', color: '#e74c3c', type: 'meat', sign: '35K', x: -8, z: -3.5 },
+    { name: 'GÀ VỊT THẢ VƯỜN · CÔ LIÊN', color: '#f39c12', type: 'poultry', sign: '40K', x: -2.5, z: -3.5 },
+    { name: 'CUA BIỂN CÀ MAU · CHÚ TÁM', color: '#27ae60', type: 'crab', sign: '55K', x: 3, z: -3.5 },
+    { name: 'VỰA SẦU RIÊNG RI6 · DÌ ÚT', color: '#d4ac0d', type: 'durian', sign: '60K', x: 8.5, z: -3.5 },
+    { name: 'DƯA HẤU & BƯỞI · BÁC BẢY', color: '#2ecc71', type: 'melon', sign: '20K', x: -8, z: 3.5 },
+    { name: 'TIỆM HOA TƯƠI · CÔ MAI', color: '#e91e63', type: 'flower', sign: '15K', x: -2.5, z: 3.5 },
+    { name: 'SẠP QUẦN ÁO · CHỊ BA', color: '#9b59b6', type: 'clothes', sign: '30K', x: 3, z: 3.5 },
+    { name: 'ĐỒ GỐM SỨ · CHÚ ĐỒNG', color: '#e67e22', type: 'pottery', sign: '25K', x: 8.5, z: 3.5 }
+  ];
+
+  stallSpecs.forEach((s, idx) => {
+    const sg = new THREE.Group();
+    sg.position.set(s.x, 0, s.z);
+    if(s.z > 0) sg.rotation.y = Math.PI;
+    // Stall counter
+    box(sg, 4.2, 0.95, 1.8, '#a0855b', 0, 0.48, 0);
+    box(sg, 4.4, 0.12, 2.0, '#d2b48c', 0, 1.0, 0);
+    // Overhead sign
+    label(sg, s.name, 0, 2.65, 0, 4.0, '#fff5db', '#2c3e50', s.sign);
+    // Awning
+    const awn = box(sg, 4.3, 0.08, 1.2, s.color, 0, 2.2, 0.6);
+    awn.rotation.x = -0.22;
+    // Vendor
+    const v = person(['#d35400', '#2980b9', '#16a085', '#8e44ad'][idx % 4]);
+    v.position.set(0, 0, -0.6);
+    sg.add(v);
+
+    // Products on counter
+    if(s.type === 'meat'){
+      box(sg, 0.8, 0.25, 0.5, '#c0392b', -1.2, 1.15, 0);
+      box(sg, 0.9, 0.3, 0.6, '#922b21', 0.2, 1.18, 0);
+      cyl(sg, 0.28, 0.25, '#784212', 1.2, 1.15, 0); // chopping block
+    } else if(s.type === 'poultry'){
+      cyl(sg, 0.38, 0.45, '#f4d03f', -1, 1.25, 0);
+      cyl(sg, 0.36, 0.42, '#f39c12', 0.8, 1.23, 0);
+      box(sg, 0.8, 0.5, 0.6, '#b7950b', 0, 1.28, 0); // cage
+    } else if(s.type === 'crab'){
+      cyl(sg, 0.65, 0.22, '#3498db', -0.8, 1.12, 0); // water tub
+      for(let k = 0; k < 3; k++) sphere(sg, 0.14, '#c0392b', -0.8 + (k-1)*0.22, 1.26, 0);
+    } else if(s.type === 'durian'){
+      for(let k = 0; k < 4; k++){
+        const dur = sphere(sg, 0.26, '#7d6608', -1.1 + k*0.7, 1.28, 0);
+        dur.scale.set(1, 1.25, 1);
+      }
+    } else if(s.type === 'melon'){
+      for(let k = 0; k < 3; k++){
+        sphere(sg, 0.28, '#1e8449', -1 + k*0.7, 1.28, 0.2);
+        sphere(sg, 0.25, '#27ae60', -0.7 + k*0.7, 1.25, -0.2);
+      }
+    } else if(s.type === 'flower'){
+      for(let k = 0; k < 3; k++){
+        cyl(sg, 0.25, 0.35, '#a04000', -1 + k*0.8, 1.2, 0);
+        sphere(sg, 0.32, ['#f1c40f', '#e67e22', '#e91e63'][k], -1 + k*0.8, 1.5, 0);
+      }
+    } else if(s.type === 'clothes'){
+      box(sg, 1.2, 0.7, 0.4, '#8e44ad', -0.8, 1.35, 0);
+      box(sg, 1.1, 0.65, 0.4, '#1abc9c', 0.8, 1.33, 0);
+    } else {
+      for(let k = 0; k < 3; k++){
+        cyl(sg, 0.28, 0.35, '#ba4a00', -1 + k*0.8, 1.2, 0); // pots
+      }
+    }
+
+    g.add(sg);
+    obstacles.push({ x: 850 + (s.x - 2.1)*40, y: 1650 + (s.z - 1)*40, w: 170, h: 80 });
+  });
+
+  scene.add(g);
+}
+
+// ==================== PHỐ ẨM THỰC ĐÊM SẦM UẤT (GRAND FOOD PLAZA) ====================
+function buildFoodPlaza(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles) {
+  const g = new THREE.Group();
+  g.position.set(toX(650), 0, toZ(2050));
+  label(g, 'PHỐ ẨM THỰC ĐÊM BÌNH AN', 0, 4.8, 0, 16, '#c0392b', '#f9e79f', 'ĐẶC SẢN 3 MIỀN · BÁN XUYÊN ĐÊM');
+
+  const foodStalls = [
+    { name: 'BÚN BÒ HUẾ CÔ NHUNG', dish: 'Bún bò tái nạm', x: -11, color: '#c0392b' },
+    { name: 'BÁNH XÈO MIỀN TÂY', dish: 'Bánh xèo giòn rụm', x: -5.5, color: '#f39c12' },
+    { name: 'CHÈ BA MÀU & SƯƠNG SA', dish: 'Chè hạt lựu cốt dừa', x: 0, color: '#16a085' },
+    { name: 'CƠM TẤM ĐÊM SÀI GÒN', dish: 'Sườn bì chả nướng than', x: 5.5, color: '#d35400' },
+    { name: 'TRÀ TẮC & NƯỚC SÂM', dish: 'Nước mía sâm dứa', x: 11, color: '#27ae60' }
+  ];
+
+  foodStalls.forEach((s, i) => {
+    const cart = new THREE.Group();
+    cart.position.set(s.x, 0, -2);
+    // Cart body
+    box(cart, 3.4, 1.1, 1.6, '#f4f6f7', 0, 0.55, 0);
+    box(cart, 3.6, 0.1, 1.8, '#bdc3c7', 0, 1.15, 0);
+    // Glass display case
+    box(cart, 3.2, 0.9, 1.3, '#d4efdf', 0, 1.65, 0);
+    // Overhead light box
+    label(cart, s.name, 0, 2.65, 0, 3.4, '#fff', s.color);
+    const cook = person(['#e74c3c', '#e67e22', '#2ecc71', '#9b59b6', '#1abc9c'][i]);
+    cook.position.set(0, 0, -0.7);
+    cart.add(cook);
+
+    // Outdoor dining tables & red plastic stools
+    for(const tz of [2.5, 5]){
+      box(cart, 1.4, 0.08, 1.1, '#3498db', (i%2?0.6:-0.6), 0.75, tz);
+      cyl(cart, 0.05, 0.75, '#7f8c8d', (i%2?0.6:-0.6), 0.38, tz);
+      // Plastic stools
+      for(const sx of [-0.65, 0.65]){
+        cyl(cart, 0.22, 0.38, '#e74c3c', (i%2?0.6:-0.6) + sx, 0.19, tz);
+      }
+    }
+    g.add(cart);
+    obstacles.push({ x: 650 + (s.x - 1.8)*40, y: 2050 - 80, w: 140, h: 70 });
+  });
+
+  // Hanging glowing lanterns overhead across food plaza
+  for(let x = -14; x <= 14; x += 2.8){
+    for(let z = -1; z <= 6; z += 3.5){
+      const lan = sphere(g, 0.18, '#e74c3c', x, 3.8, z);
+      lan.material.emissive = new THREE.Color('#e74c3c');
+      lan.material.emissiveIntensity = 0.7;
+    }
+  }
+
+  scene.add(g);
+}
+
+// ==================== KHU NHÀ PHỐ CỔ SÀI GÒN / CHỢ LỚN THẬP NIÊN 90 ====================
+function buildHistoricTownhouses(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles) {
+  const g = new THREE.Group();
+  g.position.set(toX(1850), 0, toZ(750));
+  // 6 3-story classic townhouses
+  const shops = [
+    { name: 'TIỆM VÀNG KIM BÌNH', color: '#f1c40f' },
+    { name: 'HIỆU THUỐC BẮC ĐỒNG NHÂN', color: '#27ae60' },
+    { name: 'ĐẠI LÝ BIA & NƯỚC NGỌT', color: '#e67e22' },
+    { name: 'TIỆM MAY ÂU PHỤC', color: '#8e44ad' },
+    { name: 'QUÁN CÀ PHÊ VỢT', color: '#795548' },
+    { name: 'TIỆM HỚT TÓC THANH NIÊN', color: '#2980b9' }
+  ];
+
+  shops.forEach((s, idx) => {
+    const hg = new THREE.Group();
+    hg.position.set(idx * 5.6 - 14, 0, 0);
+    // 3 stories
+    box(hg, 5.2, 8.5, 4.5, '#f5eef8', 0, 4.25, 0);
+    box(hg, 5.4, 0.3, 4.8, '#935116', 0, 8.6, 0); // eaves
+    box(hg, 4.2, 2.6, 0.1, s.color, 0, 1.3, 2.3); // ground storefront
+    // Balconies
+    box(hg, 4.4, 0.18, 0.9, '#bdc3c7', 0, 3.4, 2.7);
+    box(hg, 4.4, 0.18, 0.9, '#bdc3c7', 0, 6.2, 2.7);
+    // Green wooden shutters
+    box(hg, 1.4, 1.6, 0.1, '#1e8449', -1.2, 4.5, 2.3);
+    box(hg, 1.4, 1.6, 0.1, '#1e8449', 1.2, 4.5, 2.3);
+    box(hg, 1.4, 1.6, 0.1, '#1e8449', -1.2, 7.2, 2.3);
+    box(hg, 1.4, 1.6, 0.1, '#1e8449', 1.2, 7.2, 2.3);
+    label(hg, s.name, 0, 3.0, 2.4, 4.5, '#fff', s.color);
+    g.add(hg);
+    obstacles.push({ x: 1850 + (idx * 5.6 - 16)*40, y: 750 - 90, w: 210, h: 180 });
+  });
+
+  scene.add(g);
+}
+
 export function buildWholesaleDistrict({scene,box,cyl,sphere,label,person,mat,toX,toZ,world}){
 function palletJack(g,x,z,angle=0){
   const pj=new THREE.Group();pj.position.set(x,0,z);pj.rotation.y=angle;
@@ -148,7 +463,19 @@ label(scene,'CHỢ ĐẦU MỐI NÔNG SẢN BÌNH AN',toX(1640),7.1,toZ(1260),9.
 // Tree-lined boundary and lamp posts provide scale without filling the roads.
 for(let i=0;i<14;i++){const x=2100+i*190;box(scene,.12,5,.12,'#778c81',toX(x),2.5,toZ(1550));box(scene,.9,.12,.4,'#e1e2bf',toX(x)+.3,5,toZ(1550));}
 for(let i=0;i<12;i++){const x=300+i*380;cyl(scene,.13,2.2,'#917f5e',toX(x),1.1,toZ(3500));const leaf=sphere(scene,1.25,'#8eaa7d',toX(x),3,toZ(3500));leaf.scale.y=.85;}
-const points=[
+
+  buildRiverCanal(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles);
+  buildClockTower(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles);
+  buildSecondMarketPavilion(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles);
+  buildFoodPlaza(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles);
+  buildHistoricTownhouses(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles);
+
+  const points=[
+  {name:'Bến tàu Chợ nổi Miền Tây',x:320,y:1250},
+  {name:'Tháp đồng hồ Chợ trung tâm',x:1450,y:1280},
+  {name:'Nhà lồng 2 · Thịt cá & Nông sản',x:850,y:1650},
+  {name:'Phố Ẩm thực Đêm Bình An',x:650,y:2050},
+  {name:'Phố cổ Nhà may & Tiệm Vàng',x:1850,y:750},
   {name:'Chợ dân sinh',x:800,y:650},
   {name:'Phố Ẩm thực & Bánh mì',x:820,y:1150},
   {name:'Nhà lồng A · Vựa Rau củ',x:2540,y:1130},
