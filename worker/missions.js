@@ -8,3 +8,5 @@ const NPC_POSITIONS=[{x:320,y:330,w:240,h:155},{x:680,y:330,w:240,h:155},{x:1040
 function missionFor(p){const m={...MISSION_TYPES[p.task_type%3]};if(p.jobs===0){m.reward=40;m.xp=80;}return m;}
 function isNear(p,i){const b=NPC_POSITIONS[i];return Math.hypot(Math.max(b.x-p.x,0,p.x-b.x-b.w),Math.max(b.y-p.y,0,p.y-b.y-b.h))<105;}
 function bitCount(n){let count=0;while(n){count+=n&1;n>>>=1;}return count;}
+
+function customerFor(slot){return [{name:'Cô hàng xóm',kind:'Bữa cơm gia đình',quantity:1,maxPrice:9},{name:'Chị chủ quán bún',kind:'Nguyên liệu bán trưa',quantity:3,maxPrice:12},{name:'Bếp cơm công nhân',kind:'Đơn nhiều, cần giá tốt',quantity:5,maxPrice:10},{name:'Khách nhà hàng',kind:'Đơn nhỏ, ngân sách rộng',quantity:2,maxPrice:15}][slot%4];}

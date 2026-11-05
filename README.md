@@ -16,7 +16,7 @@ A separate transport job pays 35K and 25 XP for physically collecting a parcel a
 
 Three order types rotate: family meal, ingredients for Chị Út, and a regular customer's fish order. Buy the required items, choose lots by price/quality, bargain at most twice per vendor, and deliver at the specified recipient. Fresh lots earn 4 extra XP per required item. Standard lots keep the existing economy. The first three standard orders yield level 3 and 264K; a new stall costs 200K and requires level 3, three completed jobs and at least 250K savings.
 
-Owners can restock, set prices and serve one NPC order per 90-second window at the physical business counter. NPCs pay at most 12K per bunch. Player-to-player trades remain supported by the business panel. The first prototype displays up to 20 players through 1.5-second presence polling; this is not a WebSocket server.
+Owners can restock, set prices and serve one NPC order per 90-second window at the physical business counter. NPC customer groups have different quantities and per-bunch budgets (9K/12K/10K/15K); the database enforces the current offer. Player-to-player trades remain supported by the business panel. The first prototype displays up to 20 players through 1.5-second presence polling; this is not a WebSocket server.
 
 ## Source and build
 
@@ -32,3 +32,5 @@ Run `node scripts/build.mjs` to build and `node scripts/check-server.mjs` for ec
 ## Dependencies
 
 Three.js r160 is vendored as `public/three.module.min.js` from the official `mrdoob/three.js` repository, under the MIT license in `public/three-LICENSE.txt`. No runtime CDN is needed for 3D rendering. Models and materials are generated in code. The stylesheet uses an optional Google Font with a system-font fallback.
+
+The living-market layer adds 30 local moving NPCs with shopper pauses, pushcarts and warehouse porters, plus hall vendors. These are separate from authenticated online players. A light-density setting and optional synthesized ambience are available; the setting is stored only as a local preference. See `UPGRADE-PLAN.md` for implemented items and proposed future work.

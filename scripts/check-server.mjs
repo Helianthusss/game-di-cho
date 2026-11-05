@@ -1,5 +1,5 @@
 import {readFileSync,mkdtempSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import assert from 'node:assert/strict';import {persistentDB} from './persistent-db.mjs';
-const DB=persistentDB(join(mkdtempSync(join(tmpdir(),'market-check-')),'db.sqlite'));await DB.migrate(readFileSync('db/schema.sql','utf8'));await DB.migrate(readFileSync('drizzle/0001_progression.sql','utf8'));await DB.migrate(readFileSync('drizzle/0002_gameplay.sql','utf8'));await DB.migrate(readFileSync('drizzle/0003_wholesale_jobs.sql','utf8'));
+const DB=persistentDB(join(mkdtempSync(join(tmpdir(),'market-check-')),'db.sqlite'));await DB.migrate(readFileSync('db/schema.sql','utf8'));await DB.migrate(readFileSync('drizzle/0001_progression.sql','utf8'));await DB.migrate(readFileSync('drizzle/0002_gameplay.sql','utf8'));await DB.migrate(readFileSync('drizzle/0003_wholesale_jobs.sql','utf8'));await DB.migrate(readFileSync('drizzle/0004_customer_demand.sql','utf8'));
 const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(readFileSync('dist/server/index.js')).toString('base64'));
 const base='http://localhost';async function call(id,path,data,origin=base){const res=await worker.fetch(new Request(base+'/api/'+path,{method:data===undefined?'GET':'POST',headers:{...(id?{'oai-authenticated-user-id':id}:{}),origin,'content-type':'application/json'},body:data===undefined?undefined:JSON.stringify(data)}),{DB});return {status:res.status,...await res.json()};}
 assert.equal((await call(null,'me')).status,401);assert.equal((await call('a','profile',{name:'Bad'},'https://other.test')).status,403);
@@ -47,6 +47,12 @@ assert.equal((await call('h','haul',{action:'pickup'})).status,409);
 await call('h','presence',{x:3300,y:3320});assert.equal((await call('h','haul',{action:'pickup'})).status,200);assert.equal((await call('h','haul',{action:'pickup'})).status,409);
 assert.equal((await call('h','haul',{action:'deliver'})).status,409);await call('h','presence',{x:1160,y:945});const haul=await call('h','haul',{action:'deliver'});assert.equal(haul.status,200);assert.equal(haul.player.coins,185);assert.equal(haul.player.xp,25);assert.equal(haul.player.jobs,0);assert.equal((await call('h','haul',{action:'deliver'})).status,409);
 await call('h','presence',{x:3300,y:3320});assert.equal((await call('h','haul',{action:'pickup'})).status,409);
+// Each customer group enforces its own budget, not the old fixed 12K cap.
+await DB.prepare('UPDATE players SET coins=1000 WHERE id=?').bind('a').run();await DB.prepare('UPDATE shops SET stock=stock+50 WHERE owner=?').bind(a.publicId).run();
+for(const [slot,budget] of [9,12,10,15].entries()){
+ await call('a','price',{price:budget+1});await assert.rejects(()=>DB.prepare('INSERT INTO customer_sales(ticket,owner,quantity,total,created) VALUES (?,?,?,?,?)').bind('demand-bad-'+slot,a.publicId,1,budget+1,slot*90000).run());
+ await call('a','price',{price:budget});await DB.prepare('INSERT INTO customer_sales(ticket,owner,quantity,total,created) VALUES (?,?,?,?,?)').bind('demand-ok-'+slot,a.publicId,1,budget,slot*90000).run();
+}
 console.log('PASS: mission destinations and varied orders, quality pricing and XP, limited negotiation, NPC serving and cooldown,  level/jobs/savings gates, database enforcement, task repeat/reward once, attainable progression, purchase reserve, identity, origin, stock, trade atomicity, idempotency, last item, presence');
 
 DB.close();
