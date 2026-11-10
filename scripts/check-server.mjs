@@ -1,5 +1,5 @@
 import {readFileSync,mkdtempSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import assert from 'node:assert/strict';import {persistentDB} from './persistent-db.mjs';
-const DB=persistentDB(join(mkdtempSync(join(tmpdir(),'market-check-')),'db.sqlite'));await DB.migrate(readFileSync('db/schema.sql','utf8'));await DB.migrate(readFileSync('drizzle/0001_progression.sql','utf8'));await DB.migrate(readFileSync('drizzle/0002_gameplay.sql','utf8'));await DB.migrate(readFileSync('drizzle/0003_wholesale_jobs.sql','utf8'));await DB.migrate(readFileSync('drizzle/0004_customer_demand.sql','utf8'));
+const DB=persistentDB(join(mkdtempSync(join(tmpdir(),'market-check-')),'db.sqlite'));await DB.migrate(readFileSync('db/schema.sql','utf8'));await DB.migrate(readFileSync('drizzle/0001_progression.sql','utf8'));await DB.migrate(readFileSync('drizzle/0002_gameplay.sql','utf8'));await DB.migrate(readFileSync('drizzle/0003_wholesale_jobs.sql','utf8'));await DB.migrate(readFileSync('drizzle/0004_customer_demand.sql','utf8'));await DB.migrate(readFileSync('drizzle/0005_wholesale_shipments.sql','utf8'));
 const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(readFileSync('dist/server/index.js')).toString('base64'));
 const base='http://localhost';async function call(id,path,data,origin=base){const res=await worker.fetch(new Request(base+'/api/'+path,{method:data===undefined?'GET':'POST',headers:{...(id?{'oai-authenticated-user-id':id}:{}),origin,'content-type':'application/json'},body:data===undefined?undefined:JSON.stringify(data)}),{DB});return {status:res.status,...await res.json()};}
 assert.equal((await call(null,'me')).status,401);assert.equal((await call('a','profile',{name:'Bad'},'https://other.test')).status,403);
@@ -55,4 +55,28 @@ for(const [slot,budget] of [9,12,10,15].entries()){
 }
 console.log('PASS: mission destinations and varied orders, quality pricing and XP, limited negotiation, NPC serving and cooldown,  level/jobs/savings gates, database enforcement, task repeat/reward once, attainable progression, purchase reserve, identity, origin, stock, trade atomicity, idempotency, last item, presence');
 
+{
+const requestId=crypto.randomUUID();
+await DB.prepare('UPDATE players SET coins=1000 WHERE id=?').bind('a').run();
+const original=(await call('a','me')).player;
+assert.equal((await call('a','wholesale',{action:'buy',requestId})).status,409);
+await call('a','presence',{x:2610,y:735});
+const purchased=await call('a','wholesale',{action:'buy',requestId});
+assert.equal(purchased.status,200);
+assert.equal(purchased.player.coins,970);
+assert.equal(purchased.player.shop.stock,original.shop.stock);
+assert.equal((await call('a','wholesale',{action:'buy',requestId})).player.coins,970);
+assert.equal((await call('a','wholesale',{action:'buy',requestId:crypto.randomUUID()})).status,409);
+const shipmentId=purchased.player.cargo.id;
+assert.equal((await call('a','wholesale',{action:'unload',shipmentId})).status,409);
+await call('a','presence',{x:1370,y:1090});
+const unloaded=await call('a','wholesale',{action:'unload',shipmentId});
+assert.equal(unloaded.status,200);
+assert.equal(unloaded.player.shop.stock,original.shop.stock+15);
+assert.equal(unloaded.player.coins,970);
+assert.equal(unloaded.player.cargo,null);
+assert.equal((await call('a','wholesale',{action:'unload',shipmentId})).status,409);
+console.log('PASS: wholesale purchase, transport, unload and replay protection');
+
+}
 DB.close();

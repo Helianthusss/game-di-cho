@@ -282,6 +282,7 @@ box(drivableCargo,.75,.35,.55,'#27ae60',0,1.38,-.6);
 sphere(drivableCargo,.26,'#ecf0f1',-.22,.9,-1.15);
 sphere(drivableCargo,.28,'#f39c12',.24,.92,-1.15);
 drivableCargo.visible=false;
+let watermelonCargo=false;
 playerVehicle.add(drivableCargo);const drivable={x:1100,y:800,yaw:-Math.PI/3,mounted:false,mesh:playerVehicle};deliveryCub(scene,toX(350),toZ(520),Math.PI/4,'#4a7567');
 for(const [x,z,c] of [[-16,5,'#b96b53'],[16,-1,'#75998b']]){umbrella(scene,x,z,c);stool(scene,x-.9,z+1);stool(scene,x+.9,z+1.3,'#538d86');cyl(scene,.7,.12,'#a8b6a5',x,1.1,z+1.4);cyl(scene,.12,1,'#a8b6a5',x,.55,z+1.4);basket(scene,x,1.3,z+1.4,2);}
 for(let i=0;i<4;i++)scooter(-17+i*1.8,11,['#6c9492','#bf7861','#e1c59a'][i%3]);
@@ -338,6 +339,7 @@ function updateDeliveryMission(dt){
   if(activeDelivery.remaining<=0){
     activeDelivery=null;
     drivableCargo.visible=false;
+watermelonCargo=false;
     if(dHud)dHud.style.display='none';
     window.dispatchEvent(new CustomEvent('market-toast',{detail:'Hết thời gian giao hàng chành xe!'}));
     return;
@@ -351,6 +353,7 @@ function updateDeliveryMission(dt){
     const rew=activeDelivery.reward;
     activeDelivery=null;
     drivableCargo.visible=false;
+watermelonCargo=false;
     if(dHud)dHud.style.display='none';
     window.dispatchEvent(new CustomEvent('market-toast',{detail:`🎉 Giao hàng chành xe thành công! Nhận +${rew}K tiền thưởng!`}));
   }
@@ -500,7 +503,7 @@ function openExtraPlace(place){
   }else if(place.type==='boat_watermelon'){
     content.innerHTML=`<p class="eyebrow">BẾN SÔNG CHỢ NỔI MIỀN TÂY</p><h2>🍉 Ghe Dưa Hấu Bến Sông</h2><p class="vendor-quote">“Dưa hấu Long An ngọt lịm vừa cập bến sông sáng sớm, vỏ mỏng ruột đỏ au!”</p><div class="business-stats"><b>Nhập sỉ theo ghe</b><b>Giá gốc 15K/trái</b><b>Lãi x2 khi bán lẻ</b></div><div class="actions"><button class="primary" id="buyWatermelon">Mua cặp dưa hấu · 25K</button><button id="leaveFood">Ngắm sông</button></div>`;
     if(!$('shop').open)$('shop').showModal();
-    $('buyWatermelon').onclick=()=>{drivableCargo.visible=true;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'🍉 Đã chất dưa hấu lên xe ba gác! Chở về sạp bán kiếm lời!'}));};
+    $('buyWatermelon').onclick=()=>{watermelonCargo=true;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'🍉 Đã chất dưa hấu lên xe ba gác! Chở về sạp bán kiếm lời!'}));};
     $('leaveFood').onclick=()=>$('shop').close();
     return;
   }else if(place.type==='clock_tower'){
@@ -530,9 +533,9 @@ function openExtraPlace(place){
     $('buyCoffee').onclick=()=>{$('shop').close();openMap();window.dispatchEvent(new CustomEvent('market-toast',{detail:'☕ Tỉnh táo hẳn ra! Mở bản đồ toàn cảnh chợ!'}));};
     $('leaveFood').onclick=()=>$('shop').close();
   }else if(place.type.startsWith('wholesale_hall')){
-    content.innerHTML=`<p class="eyebrow">CHỢ ĐẦU MỐI BÌNH AN · KHU BÁN SỈ</p><h2>📦 ${place.name}</h2><p class="vendor-quote">“Khu tập kết nông sản các tỉnh miền Tây và Đà Lạt. Nhập sỉ giá gốc chở về sạp hoặc nhận chuyến chành xe giao nhận kiếm thêm.”</p><div class="business-stats"><b>Lô sỉ 15 phần</b><b>Giá nhập 30K</b><b>Lãi x2 bán lẻ</b></div><div class="actions"><button class="primary" id="buyLot">Nhập lô sỉ · 30K</button><button class="primary" id="startDelivery" style="background:#27ae60">🛵 Nhận chở chành xe · Thưởng 45K</button><button id="leaveFood">Quay lại sau</button></div>`;
+    content.innerHTML=`<p class="eyebrow">CHỢ ĐẦU MỐI BÌNH AN · KHU BÁN SỈ</p><h2>📦 ${place.name}</h2><p class="vendor-quote">“Khu tập kết nông sản các tỉnh miền Tây và Đà Lạt. Nhập sỉ giá gốc chở về sạp hoặc nhận chuyến chành xe giao nhận kiếm thêm.”</p><div class="business-stats"><b>Nhà lồng A · 15 bó rau</b><b>Giá nhập 30K</b></div><div class="actions"><button class="primary" id="buyLot">${place.type==='wholesale_hall_a'?'Nhập 15 bó rau · 30K':'Chỉ đường tới vựa rau nhà lồng A'}</button><button class="primary" id="startDelivery" style="background:#27ae60">🛵 Nhận chở chành xe · Thưởng 45K</button><button id="leaveFood">Quay lại sau</button></div>`;
 if(!$('shop').open)$('shop').showModal();
-$('buyLot').onclick=()=>{drivableCargo.visible=true;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'📦 Đã chất hàng lên xe ba gác! Chở về sạp bán nào!'}));};
+$('buyLot').onclick=()=>{if(place.type==='wholesale_hall_a')window.buyWholesale?.();else window.guideWholesale?.();};
 $('startDelivery').onclick=()=>{
   activeDelivery={from:place.name, to:'Tiệm Bánh Mì', targetPos:{x:820,y:1180}, reward:45, remaining:90};
   drivableCargo.visible=true;
@@ -540,10 +543,6 @@ $('startDelivery').onclick=()=>{
   window.dispatchEvent(new CustomEvent('market-toast',{detail:'🛵 Đã nhận chuyến hàng chành xe! Giao tới Tiệm Bánh Mì trong 90s!'}));
 };
 $('leaveFood').onclick=()=>$('shop').close();
-return;
-    if(!$('shop').open)$('shop').showModal();
-    $('buyLot').onclick=()=>{$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'📦 Đã nhập 15 phần hàng sỉ! Lên xe ba gác chở về sạp bán nào!'}));};
-    $('leaveFood').onclick=()=>$('shop').close();
   }
 }
 
@@ -609,7 +608,7 @@ else{$('vehicleBtn').classList.remove('active');}
 
 updateSteam(time);district.update(time,dt);const pulse=marketLife.update(time,dt);if(Math.floor(time)%2===0)$('marketPulse').textContent='Nhịp chợ · '+pulse.active+' NPC hoạt động';updateMiniMap(time);const surveyText=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';if($('viewAll').textContent!==surveyText)$('viewAll').textContent=surveyText;$('viewAll').setAttribute('aria-pressed',String(!!window.surveyView));$('placeLabel').innerHTML=(window.surveyView?'TOÀN CẢNH CHỢ ĐẦU MỐI':district.zone(world.x,world.y))+'<small>07:15 · Chợ đầu mối Bình An</small>';const names=[...signs,'Nhà của má','Sạp của con','Kho giao nhận',...extraPlaces.map(p=>p.name)];$('interact').disabled=near<0;$('interact').innerHTML=near<0?'<kbd>E</kbd> Đến gần sạp':'<kbd>E</kbd> '+(near===5?'Về nhà':near===6?'Mở sạp':near===7?'Nhận hàng':near>=8?'Ghé vào':'Nói chuyện');$('worldHint').textContent=near<0?'Bấm để đi · Kéo để xoay camera':names[near];
 const target=window.getNavigationTarget?.()??0;const waypoint=window.customWaypoint;if(waypoint&&Math.hypot(world.x-waypoint.x,world.y-waypoint.y)<85)window.customWaypoint=null;const dest=waypoint?{x:waypoint.x,y:waypoint.y,w:0,h:0}:locations[target]||locations[0];marker.position.set(toX(dest.x+dest.w/2),.12,toZ(waypoint?dest.y:target===5?dest.y-40:dest.y+dest.h+45));pin.position.y=1+Math.sin(time*3)*.12;ring.rotation.z=time*.25;$('destinationHint').textContent=(waypoint?.name||names[target]||'Sạp hàng')+' · '+Math.round(distance(dest,world.x,world.y)/40)+'m';
-const business=window.getMyBusiness?.();const nextLabel=business?business.stock+' bó rau · '+business.price+'K/bó':'Mở sạp từ cấp 3';customer.visible=!!business;if(nextLabel!==businessLabel){businessLabel=nextLabel;const img=stockLabel.material.map.image,cx=img.getContext('2d');cx.clearRect(0,0,img.width,img.height);cx.fillStyle='#fff5df';cx.beginPath();cx.roundRect(0,0,384,80,24);cx.fill();cx.font='bold 29px sans-serif';cx.fillStyle='#365f52';cx.textAlign='center';cx.fillText(nextLabel,192,51);stockLabel.material.map.needsUpdate=true;}const online=window.getOnlinePeers?.()||[];if(time-lastPeersCheck>.8){lastPeersCheck=time;for(const p of online)if(!peers.has(p.publicId)){const m=person('#6c9fa3');floatingLabel(m,p.name,2.55);scene.add(m);peers.set(p.publicId,m);}for(const [id,m] of peers)if(!online.some(p=>p.publicId===id)){scene.remove(m);peers.delete(id);}}
+drivableCargo.visible=!!(watermelonCargo||activeDelivery||window.getWholesaleCargo?.());const business=window.getMyBusiness?.();const nextLabel=business?business.stock+' bó rau · '+business.price+'K/bó':'Mở sạp từ cấp 3';customer.visible=!!business;if(nextLabel!==businessLabel){businessLabel=nextLabel;const img=stockLabel.material.map.image,cx=img.getContext('2d');cx.clearRect(0,0,img.width,img.height);cx.fillStyle='#fff5df';cx.beginPath();cx.roundRect(0,0,384,80,24);cx.fill();cx.font='bold 29px sans-serif';cx.fillStyle='#365f52';cx.textAlign='center';cx.fillText(nextLabel,192,51);stockLabel.material.map.needsUpdate=true;}const online=window.getOnlinePeers?.()||[];if(time-lastPeersCheck>.8){lastPeersCheck=time;for(const p of online)if(!peers.has(p.publicId)){const m=person('#6c9fa3');floatingLabel(m,p.name,2.55);scene.add(m);peers.set(p.publicId,m);}for(const [id,m] of peers)if(!online.some(p=>p.publicId===id)){scene.remove(m);peers.delete(id);}}
 for(const p of online){const m=peers.get(p.publicId);if(!m)continue;const tx=toX(p.x),tz=toZ(p.y);const dd=Math.hypot(tx-m.position.x,tz-m.position.z);
 if(!m.userData.peerVehicle){
   const pv=baGac(m, 0, 0, 0, '#2e86c1');
