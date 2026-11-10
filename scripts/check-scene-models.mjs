@@ -20,5 +20,20 @@ for(const destination of district.points.filter((_,i)=>[1,2,3,4,11].includes(i)|
   const path=navigator.route({x:4440,y:1380},destination);
   assert.deepEqual(path.at(-1),{x:destination.x,y:destination.y},destination.name);
 }
+const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+for(const building of district.city.buildings){
+  const {plot,footprint}=building;
+  assert(footprint.x>=plot.x&&footprint.y>=plot.y);
+  assert(footprint.x+footprint.w<=plot.x+plot.w&&footprint.y+footprint.h<=plot.y+plot.h);
+  for(const road of district.roads)assert(!overlap(footprint,road),plot.name+' overlaps a road');
+  assert(!overlap(footprint,district.city.lake),plot.name+' overlaps lake');
+  for(const other of district.city.buildings){
+    if(other!==building)assert(!overlap(plot,other.plot),plot.name+' overlaps another plot');
+  }
+  const entrance=plot.entrance;
+  assert(navigator.free(entrance.x,entrance.y),plot.name+' entrance blocked');
+  assert.deepEqual(navigator.route({x:4440,y:1380},entrance).at(-1),entrance,plot.name+' unreachable');
+}
+console.log('PASS: city lots, road clearance, lake clearance and all building entrances');
 let meshes=0;scene.traverse(o=>{if(o.isMesh){meshes++;assert(o.position.toArray().every(Number.isFinite));}});assert(meshes>100);
 console.log('PASS: wholesale district, pallet jacks, forklifts, gas station and traffic initialize');

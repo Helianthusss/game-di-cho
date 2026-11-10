@@ -10,8 +10,9 @@ host.innerHTML='<div id="loading3d"><strong>CHỢ BÌNH AN</strong><span>Đang m
 host.insertAdjacentHTML('afterend','<div class="game-controls"><div class="dpad"><button data-key="arrowup" aria-label="Đi lên">▲</button><button data-key="arrowleft" aria-label="Đi trái">◀</button><button data-key="arrowdown" aria-label="Đi xuống">▼</button><button data-key="arrowright" aria-label="Đi phải">▶</button></div><div class="control-help"><kbd>Bấm để đi <span>·</span> <kbd>W A S D</kbd> <span>·</span> Kéo để xoay <span>·</span> Cuộn để phóng</div><button data-key="shift" class="run-button">Chạy</button><button id="vehicleBtn">🛵 Lên xe</button><button id="interact" disabled><kbd>E</kbd> Đến gần sạp</button><button id="cameraReset" aria-label="Đặt lại góc nhìn">↻ Góc nhìn</button></div>');
 let renderer;
 try{renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,powerPreference:'high-performance'});}catch{ $('loading3d').innerHTML='<strong>Chưa mở được cảnh 3D</strong><span>Trình duyệt cần WebGL. Thử bật tăng tốc đồ họa hoặc dùng trình duyệt khác.</span>';throw Error('WebGL unavailable');}
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
 const scene=new THREE.Scene();scene.background=new THREE.Color('#d9e7df');scene.fog=new THREE.Fog('#d9e7df',130,360);
+let cityView=null;
 const camera=new THREE.PerspectiveCamera(48,1,.1,390);let yaw=.15,pitch=.62,zoom=20;
 scene.add(new THREE.HemisphereLight('#ffefd1','#7f9b83',2.4));const sun=new THREE.DirectionalLight('#fff0ce',3.4);sun.position.set(-15,26,14);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-25,right:25,top:22,bottom:-22,near:.1,far:65});sun.shadow.normalBias=.035;sun.shadow.bias=-.00015;scene.add(sun);scene.add(sun.target);
 const mats=new Map(),geos=new Map();function mat(color,roughness=.8){if(!mats.has(color))mats.set(color,new THREE.MeshStandardMaterial({color,roughness}));return mats.get(color);}
@@ -219,13 +220,35 @@ function stool(g,x,z,color='#bd6551'){cyl(g,.31,.11,color,x,.55,z);for(const dx 
 function umbrella(g,x,z,color){cyl(g,.045,3.3,'#96744e',x,1.65,z);mesh(g,'ConeGeometry',[1.75,.7,8],color,x,3.7,z);}
 function scooter(x,z,color){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const zz of [-.6,.6]){const tire=mesh(g,'TorusGeometry',[.28,.08,5,12],'#3d4946',0,.35,zz);tire.rotation.y=Math.PI/2;}box(g,.45,.6,.85,color,0,.65,0);box(g,.47,.14,.7,'#4f4b40',0,1,-.1);box(g,.4,.7,.13,color,0,.88,.6);box(g,.7,.06,.06,'#65766d',0,1.28,.65);sphere(g,.12,'#fbebbc',0,1,.71);g.rotation.y=-.35;}
 // Ground texture is drawn locally, so no external asset requests are needed.
-const groundCanvas=document.createElement('canvas');groundCanvas.width=groundCanvas.height=256;const gc=groundCanvas.getContext('2d');gc.fillStyle='#c7b99c';gc.fillRect(0,0,256,256);for(let y=0;y<256;y+=64)for(let x=0;x<256;x+=64){gc.fillStyle=(x+y)%128?'#c6b69a':'#cebea2';gc.fillRect(x+1,y+1,62,62);gc.fillStyle='#b8a88e';gc.fillRect(x+6,y+7,3,2);}const groundTex=new THREE.CanvasTexture(groundCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(102,84);groundTex.colorSpace=THREE.SRGBColorSpace;const ground=new THREE.Mesh(new THREE.PlaneGeometry(340,280),new THREE.MeshStandardMaterial({map:groundTex,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(50,0,35);ground.receiveShadow=true;scene.add(ground);
+const groundCanvas=document.createElement('canvas');groundCanvas.width=groundCanvas.height=256;const gc=groundCanvas.getContext('2d');gc.fillStyle='#c7b99c';gc.fillRect(0,0,256,256);for(let y=0;y<256;y+=64)for(let x=0;x<256;x+=64){gc.fillStyle=(x+y)%128?'#c6b69a':'#cebea2';gc.fillRect(x+1,y+1,62,62);gc.fillStyle='#b8a88e';gc.fillRect(x+6,y+7,3,2);}const groundTex=new THREE.CanvasTexture(groundCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(102,84);groundTex.colorSpace=THREE.SRGBColorSpace;const ground=new THREE.Mesh(new THREE.PlaneGeometry(340,400),new THREE.MeshStandardMaterial({map:groundTex,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(65,0,65);ground.receiveShadow=true;scene.add(ground);
 const toX=x=>(x-800)/40,toZ=y=>(y-600)/40;
 // Townhouses, shutters, balconies and hanging signs around the market.
 for(let i=0;i<9;i++){const g=new THREE.Group();g.position.set(-28+i*7,0,-26);scene.add(g);const c=['#d9c396','#c0c6a1','#dcad90','#c2c7b1'][i%4];box(g,4.8,5,3.7,c,0,2.5,0);box(g,5,1,4,'#a96952',0,5.1,0);for(let z=-1.8;z<2;z+=.4)box(g,5,.07,.08,'#c48a69',0,5.63,z);box(g,3.7,2.4,.1,'#648b82',0,1.2,1.9);for(let x=-1.7;x<1.8;x+=.24)box(g,.035,2.3,.04,'#96aa93',x,1.2,1.98);box(g,1.3,1.2,.1,'#577e79',0,3.8,1.9);box(g,1.7,.12,.5,'#e9d5b1',0,3.15,2.05);label(g,['TẠP HÓA','BÚN RIÊU','CÀ PHÊ','TIỆM MAY'][i%4],0,2.8,2,3.8);}
-// Front gate leaves the lane open and gives the market a recognizable entrance.
-for(const x of [-7,7]){box(scene,.5,5,.5,'#d8b17d',x,2.5,12.7);box(scene,.7,.25,.7,'#af7152',x,5,12.7);}box(scene,14.7,1.3,.55,'#527e6a',0,5.3,12.7);
-label(scene,'CHỢ BÌNH AN',0,5.3,12.7,10,'#547d67','#fff0c9','HỌP CHỢ TỪ 1986',true);
+// Tiled market gate with separate piers and an unobstructed centre lane.
+const gate=new THREE.Group();
+gate.position.set(0,0,12.7);scene.add(gate);
+for(const x of [-7,7]){
+  box(gate,.9,5.7,1.15,'#e4cda4',x,2.85,0);
+  box(gate,1.15,.5,1.4,'#b39a75',x,.25,0);
+  box(gate,1.18,.3,1.4,'#eadbb7',x,4.35,0);
+  box(gate,1.3,.25,1.5,'#a6674c',x,5.7,0);
+}
+box(gate,14.5,1.4,.75,'#ead9b5',0,5.35,0);
+box(gate,14.8,.2,1.1,'#c6a677',0,4.6,0);
+for(const side of [-1,1]){
+  const slope=box(gate,16,.17,1.7,'#a76a4e',0,6.4,side*.65);
+  slope.rotation.x=side*.42;
+  for(let x=-7.8;x<8;x+=.32){
+    const tile=box(gate,.08,.07,1.7,'#c18a60',x,6.53,side*.65);
+    tile.rotation.x=side*.42;
+  }
+}
+box(gate,16.2,.15,.16,'#c9976d',0,6.78,0);
+label(gate,'CHỢ BÌNH AN',0,5.35,.42,10.3,'#ead9b5','#8e5140','HỌP CHỢ TỪ 1986');
+label(gate,'CHỢ BÌNH AN',0,5.35,-.42,10.3,'#ead9b5','#8e5140','HỌP CHỢ TỪ 1986',false,Math.PI);
+for(const x of [-7,7]){
+  label(gate,x<0?'CHỢ SÁNG':'LỐI ĐI BỘ',x,2.6,.6,.8,'#4f6c57','#f1e0b6');
+}
 const boothGroups=[];const signs=['CÁ TƯƠI · CÔ BA','RAU VƯỜN · DÌ TƯ','CÀ CHUA · CÔ SÁU','GIA VỊ · CHÚ NĂM','QUÁN BÚN · CHỊ ÚT'];
 for(let i=0;i<5;i++){const b=locations[i],g=new THREE.Group();g.position.set(toX(b.x+b.w/2),0,toZ(b.y+b.h/2));if(i>=3)g.rotation.y=Math.PI;scene.add(g);g.userData.index=i;boothGroups.push(g);const w=b.w/40,d=b.h/40,c=['#578a93','#69966a','#bc785c','#b59b69','#c68b53'][i];
 for(const x of [-w/2,w/2])for(const z of [-d/2,d/2])cyl(g,.065,3.9,'#a78a5c',x,1.95,z);
@@ -254,12 +277,12 @@ label(playerBooth,'KHU SẠP CỦA CON',0,4,0,4.6);const stockLabel=floatingLabe
 // Street props: plastic stools, umbrellas, baskets and parked motorbikes.
 
 // Phố Ẩm Thực & Quán Xá Đường Phố (Food Street Alley)
-sugarCaneCart(scene,toX(520),toZ(1880),Math.PI/4);
-banhMiCart(scene,toX(920),toZ(1880),0);
-streetCafe(scene,toX(1320),toZ(1880));
+sugarCaneCart(scene,toX(520),toZ(1160),Math.PI/4);
+banhMiCart(scene,toX(820),toZ(1160),0);
+streetCafe(scene,toX(1120),toZ(1160));
 // Hanging festive string lights across the street
 for(let sx=-20;sx<=20;sx+=3.5){
-  const bulb=sphere(scene,.14,'#f39c12',sx,5.8,32);
+  const bulb=sphere(scene,.14,'#f39c12',sx,5.8,14);
   bulb.material.emissive=new THREE.Color('#f39c12');bulb.material.emissiveIntensity=.6;
 }
 // Second row of Vietnamese commercial shop-houses along the boulevard
@@ -289,6 +312,7 @@ for(let i=0;i<4;i++)scooter(-17+i*1.8,11,['#6c9492','#bf7861','#e1c59a'][i%3]);
 for(const [x,z] of [[-19,-7],[19,-7],[-18,10],[18,11],[-5,7],[5,7]]){cyl(scene,.17,2.8,'#8e7955',x,1.4,z);for(let j=0;j<3;j++){const leaf=sphere(scene,1.05,['#7fa472','#8eac76','#6c966c'][j],x+(j-1)*.5,3+j*.4,z);leaf.scale.y=.8;}cyl(scene,.6,.55,'#b28057',x,.25,z);}
 const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-18,5.5,0),new THREE.Vector3(0,4.5,0),new THREE.Vector3(18,5.5,0)]);scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,.025,4,false),mat('#655c47')));for(let i=0;i<9;i++){const p=curve.getPoint(i/8);const flag=mesh(scene,'ConeGeometry',[.23,.5,3],['#cf9a68','#709b91','#d0b77c'][i%3],p.x,p.y-.3,p.z);flag.rotation.z=Math.PI;}
 const district=buildWholesaleDistrict({scene,box,cyl,sphere,label,person,mat,toX,toZ,world});
+window.cityRestaurant=district.city.plots.find(p=>p.id==='shop-n-1').entrance;
 const avatar=person('#c57c5d',true,true);scene.add(avatar);const myBasket=new THREE.Group();basket(myBasket,0,.1,0,0);myBasket.scale.set(.65,.65,.65);myBasket.position.set(.55,.55,.05);avatar.add(myBasket);
 const peers=new Map();let lastPeersCheck=0;
 const marker=new THREE.Group();const ring=new THREE.Mesh(new THREE.TorusGeometry(.62,.07,6,28),new THREE.MeshBasicMaterial({color:'#ecc977'}));ring.rotation.x=Math.PI/2;marker.add(ring);const pin=mesh(marker,'ConeGeometry',[.18,.42,5],'#e7bd69',0,1.1,0);pin.rotation.z=Math.PI;scene.add(marker);
@@ -466,7 +490,7 @@ $('snapPhoto').onclick=()=>{
 $('crowdMode').onclick=()=>{marketLife.setDensity(marketLife.density==='busy'?'light':'busy');$('crowdMode').textContent='Khách: '+(marketLife.density==='busy'?'Nhộn nhịp':'Nhẹ máy');};$('soundMode').onclick=async()=>{try{if(marketAudio.on)marketAudio.stop();else await marketAudio.start();$('soundMode').textContent='Âm thanh: '+(marketAudio.on?'Bật':'Tắt');}catch(e){window.dispatchEvent(new CustomEvent('market-toast',{detail:e.message}));}};let walkPath=[];const clickRing=new THREE.Mesh(new THREE.RingGeometry(.32,.43,32),new THREE.MeshBasicMaterial({color:'#f0cd78',side:THREE.DoubleSide,transparent:true,opacity:.9}));clickRing.rotation.x=-Math.PI/2;clickRing.visible=false;scene.add(clickRing);
 const keys=new Set();let near=-1;let last=0,time=0,drag=null;
 function clear(){keys.clear();}window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
-window.resetWorld=()=>{world.x=800;world.y=650;walkPath=[];clickRing.visible=false;clear();};window.nearShop=i=>distance(locations[i],world.x,world.y)<105;
+window.resetWorld=()=>{cityView=null;window.surveyView=false;world.x=800;world.y=650;walkPath=[];clickRing.visible=false;clear();};window.nearShop=i=>distance(locations[i],world.x,world.y)<105;
 function distance(b,x,y){return Math.hypot(Math.max(b.x-x,0,x-b.x-b.w),Math.max(b.y-y,0,y-b.y-b.h));}
 
 let speedBoostUntil=0, banhMiBonus=0;
@@ -483,11 +507,13 @@ const extraPlaces=[
   {x:2540,y:675,w:140,h:120,name:'Vựa Sỉ Rau Củ (Nhà Lồng A)',type:'wholesale_hall_a'},
   {x:3700,y:675,w:140,h:120,name:'Vựa Sỉ Trái Cây (Nhà Lồng B)',type:'wholesale_hall_b'},
   {x:2540,y:2000,w:140,h:120,name:'Vựa Sỉ Nông Sản Khô (Nhà Lồng C)',type:'wholesale_hall_c'},
-  {x:3700,y:2000,w:140,h:120,name:'Vựa Sỉ Hải Sản & Đóng Thùng (Nhà Lồng D)',type:'wholesale_hall_d'}
+  {x:3700,y:2000,w:140,h:120,name:'Vựa Sỉ Hải Sản & Đóng Thùng (Nhà Lồng D)',type:'wholesale_hall_d'},
+  {...district.city.plots.find(p=>p.id==='shop-n-1').entrance,w:0,h:0,name:'Phở Gia Truyền · Giao hàng',type:'city_delivery'}
 ];
 
 function openExtraPlace(place){
   const content=$('dialogContent');
+  if(place.type==='city_delivery'){window.openCityHaul?.();return;}
   if(place.type==='food_bunbo'){
     content.innerHTML=`<p class="eyebrow">PHỐ ẨM THỰC ĐÊM BÌNH AN</p><h2>🍜 Quán Bún Bò Huế Cô Nhung</h2><p class="vendor-quote">“Tô bún bò bốc khói nghi ngút, nạm bò mềm thơm, chả cua đậm đà ớt sa tế cay nồng!”</p><div class="reward-row"><b>⚡ Tăng tốc +80%</b><b>Khí thế hừng hực trong 90 giây</b></div><div class="actions"><button class="primary" id="buyBunBo">Ăn tô đặc biệt · 25K</button><button id="leaveFood">Để lát ghé</button></div>`;
     if(!$('shop').open)$('shop').showModal();
@@ -577,16 +603,21 @@ $('vehicleBtn').onclick=toggleVehicle;
 const allowed=['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift','q','r','f','h','v','p'];window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey||$('shop').open)return;const k=e.key.toLowerCase();if(allowed.includes(k)){e.preventDefault();keys.add(k);}if(k==='m'&&!e.repeat){e.preventDefault();openMap();}if(k==='e'&&!e.repeat){e.preventDefault();interact();}if(k==='f'&&!e.repeat){e.preventDefault();toggleVehicle();}if(k==='h'&&!e.repeat){e.preventDefault();marketAudio.horn?.();}if(k==='v'&&!e.repeat){e.preventDefault();cycleCameraMode();}if(k==='p'&&!e.repeat){e.preventDefault();togglePhotoMode(!document.body.classList.contains('photo-mode'));}});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>keys.delete(b.dataset.key));});
 const canvas=$('world');const raycaster=new THREE.Raycaster(),floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hit=new THREE.Vector3();
+window.walkToCityPoint=p=>{
+  const path=navigator.route({x:world.x,y:world.y},p);
+  if(!path.length){window.dispatchEvent(new CustomEvent('market-toast',{detail:'Chưa tìm được đường tới điểm này.'}));return;}
+  cityView=null;window.surveyView=false;walkPath=path;clickRing.visible=false;
+};
 function clickToWalk(e){if($('shop').open)return;const rect=canvas.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);if(!raycaster.ray.intersectPlane(floorPlane,hit))return;const path=navigator.route({x:world.x,y:world.y},{x:hit.x*40+800,y:hit.z*40+600});if(!path.length){window.dispatchEvent(new CustomEvent('market-toast',{detail:'Không tìm được lối tới đó. Chọn một điểm trên lối đi nhé.'}));return;}walkPath=path;window.surveyView=false;const p=path[path.length-1];clickRing.position.set(toX(p.x),.055,toZ(p.y));clickRing.visible=true;}
 canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,moved:false,id:e.pointerId};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>7)drag.moved=true;if(drag.moved){yaw-=dx*.007;pitch=Math.max(.28,Math.min(1.05,pitch+dy*.004));}drag.x=e.clientX;drag.y=e.clientY;});
 canvas.addEventListener('pointerup',e=>{if(drag?.id===e.pointerId){const tap=!drag.moved;drag=null;if(tap)clickToWalk(e);}});for(const ev of ['pointercancel','lostpointercapture'])canvas.addEventListener(ev,()=>drag=null);
-canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(11,Math.min(65,zoom+e.deltaY*.018));},{passive:false});$('cameraReset').onclick=()=>{window.surveyView=false;yaw=.15;pitch=.62;zoom=20;};
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(11,Math.min(65,zoom+e.deltaY*.018));},{passive:false});$('cameraReset').onclick=()=>{cityView=null;window.surveyView=false;yaw=.15;pitch=.62;zoom=20;};
 function resize(){renderer.setSize(host.clientWidth,host.clientHeight,false);camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();}window.addEventListener('resize',resize);resize();
 function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000||0,.04);last=now;time+=dt;let dx=0,dy=0;
 if(!$('shop').open){let sx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));let sy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(joyActive){sx=joyX;sy=joyY;}dx=sx*Math.cos(yaw)+sy*Math.sin(yaw);dy=-sx*Math.sin(yaw)+sy*Math.cos(yaw);if(keys.has('q'))yaw+=dt;if(keys.has('r'))yaw-=dt;}else clear();
 if(Math.hypot(dx,dy)>.1){walkPath=[];clickRing.visible=false;}else if(!$('shop').open&&walkPath.length){const p=walkPath[0],d=Math.hypot(p.x-world.x,p.y-world.y),reach=Math.max(4,(keys.has('shift')?240:140)*dt);if(d<=reach){world.x=p.x;world.y=p.y;walkPath.shift();if(!walkPath.length)clickRing.visible=false;}else{dx=(p.x-world.x)/d;dy=(p.y-world.y)/d;}}
-const moving=Math.hypot(dx,dy)>.1;if(moving){window.surveyView=false;let baseSp=(keys.has('shift')?240:140);
+const moving=Math.hypot(dx,dy)>.1;if(moving){cityView=null;window.surveyView=false;let baseSp=(keys.has('shift')?240:140);
 if(speedBoostUntil>time)baseSp*=1.6;
 if(drivable.mounted)baseSp=(keys.has('shift')||speedBoostUntil>time?480:350);
 const speed=baseSp*dt/Math.hypot(dx,dy);
@@ -606,9 +637,9 @@ if(drivable.mounted){$('vehicleBtn').classList.add('active');$('vehicleBtn').tex
 else if(dVeh<95){$('vehicleBtn').classList.add('active');$('vehicleBtn').textContent='🛵 Lên xe';}
 else{$('vehicleBtn').classList.remove('active');}
 
-updateSteam(time);district.update(time,dt);const pulse=marketLife.update(time,dt);if(Math.floor(time)%2===0)$('marketPulse').textContent='Nhịp chợ · '+pulse.active+' NPC hoạt động';updateMiniMap(time);const surveyText=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';if($('viewAll').textContent!==surveyText)$('viewAll').textContent=surveyText;$('viewAll').setAttribute('aria-pressed',String(!!window.surveyView));$('placeLabel').innerHTML=(window.surveyView?'TOÀN CẢNH CHỢ ĐẦU MỐI':district.zone(world.x,world.y))+'<small>07:15 · Chợ đầu mối Bình An</small>';const names=[...signs,'Nhà của má','Sạp của con','Kho giao nhận',...extraPlaces.map(p=>p.name)];$('interact').disabled=near<0;$('interact').innerHTML=near<0?'<kbd>E</kbd> Đến gần sạp':'<kbd>E</kbd> '+(near===5?'Về nhà':near===6?'Mở sạp':near===7?'Nhận hàng':near>=8?'Ghé vào':'Nói chuyện');$('worldHint').textContent=near<0?'Bấm để đi · Kéo để xoay camera':names[near];
+updateSteam(time);district.update(time,dt,cityView||world);const pulse=marketLife.update(time,dt);if(Math.floor(time)%2===0)$('marketPulse').textContent='Nhịp chợ · '+pulse.active+' NPC hoạt động';updateMiniMap(time);const surveyText=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';if($('viewAll').textContent!==surveyText)$('viewAll').textContent=surveyText;$('viewAll').setAttribute('aria-pressed',String(!!window.surveyView));$('placeLabel').innerHTML=(cityView?'GÓC NGẮM · '+cityView.name:window.surveyView?'TOÀN CẢNH BÌNH AN':district.zone(world.x,world.y))+'<small>07:15 · Chợ đầu mối Bình An</small>';const names=[...signs,'Nhà của má','Sạp của con','Kho giao nhận',...extraPlaces.map(p=>p.name)];$('interact').disabled=near<0;$('interact').innerHTML=near<0?'<kbd>E</kbd> Đến gần sạp':'<kbd>E</kbd> '+(near===5?'Về nhà':near===6?'Mở sạp':near===7?'Nhận hàng':near>=8?'Ghé vào':'Nói chuyện');$('worldHint').textContent=near<0?'Bấm để đi · Kéo để xoay camera':names[near];
 const target=window.getNavigationTarget?.()??0;const waypoint=window.customWaypoint;if(waypoint&&Math.hypot(world.x-waypoint.x,world.y-waypoint.y)<85)window.customWaypoint=null;const dest=waypoint?{x:waypoint.x,y:waypoint.y,w:0,h:0}:locations[target]||locations[0];marker.position.set(toX(dest.x+dest.w/2),.12,toZ(waypoint?dest.y:target===5?dest.y-40:dest.y+dest.h+45));pin.position.y=1+Math.sin(time*3)*.12;ring.rotation.z=time*.25;$('destinationHint').textContent=(waypoint?.name||names[target]||'Sạp hàng')+' · '+Math.round(distance(dest,world.x,world.y)/40)+'m';
-drivableCargo.visible=!!(watermelonCargo||activeDelivery||window.getWholesaleCargo?.());const business=window.getMyBusiness?.();const nextLabel=business?business.stock+' bó rau · '+business.price+'K/bó':'Mở sạp từ cấp 3';customer.visible=!!business;if(nextLabel!==businessLabel){businessLabel=nextLabel;const img=stockLabel.material.map.image,cx=img.getContext('2d');cx.clearRect(0,0,img.width,img.height);cx.fillStyle='#fff5df';cx.beginPath();cx.roundRect(0,0,384,80,24);cx.fill();cx.font='bold 29px sans-serif';cx.fillStyle='#365f52';cx.textAlign='center';cx.fillText(nextLabel,192,51);stockLabel.material.map.needsUpdate=true;}const online=window.getOnlinePeers?.()||[];if(time-lastPeersCheck>.8){lastPeersCheck=time;for(const p of online)if(!peers.has(p.publicId)){const m=person('#6c9fa3');floatingLabel(m,p.name,2.55);scene.add(m);peers.set(p.publicId,m);}for(const [id,m] of peers)if(!online.some(p=>p.publicId===id)){scene.remove(m);peers.delete(id);}}
+drivableCargo.visible=!!(watermelonCargo||activeDelivery||window.getTransportCargo?.()||window.getWholesaleCargo?.());const business=window.getMyBusiness?.();const nextLabel=business?business.stock+' bó rau · '+business.price+'K/bó':'Mở sạp từ cấp 3';customer.visible=!!business;if(nextLabel!==businessLabel){businessLabel=nextLabel;const img=stockLabel.material.map.image,cx=img.getContext('2d');cx.clearRect(0,0,img.width,img.height);cx.fillStyle='#fff5df';cx.beginPath();cx.roundRect(0,0,384,80,24);cx.fill();cx.font='bold 29px sans-serif';cx.fillStyle='#365f52';cx.textAlign='center';cx.fillText(nextLabel,192,51);stockLabel.material.map.needsUpdate=true;}const online=window.getOnlinePeers?.()||[];if(time-lastPeersCheck>.8){lastPeersCheck=time;for(const p of online)if(!peers.has(p.publicId)){const m=person('#6c9fa3');floatingLabel(m,p.name,2.55);scene.add(m);peers.set(p.publicId,m);}for(const [id,m] of peers)if(!online.some(p=>p.publicId===id)){scene.remove(m);peers.delete(id);}}
 for(const p of online){const m=peers.get(p.publicId);if(!m)continue;const tx=toX(p.x),tz=toZ(p.y);const dd=Math.hypot(tx-m.position.x,tz-m.position.z);
 if(!m.userData.peerVehicle){
   const pv=baGac(m, 0, 0, 0, '#2e86c1');
@@ -634,7 +665,11 @@ if(isRaining){
 updateDeliveryMission(dt);
 triggerVendorCall();
 
-if(cameraMode===0||window.surveyView){
+if(cityView){
+  const look=new THREE.Vector3(toX(cityView.x),1.6,toZ(cityView.y));
+  camera.position.lerp(new THREE.Vector3(look.x+Math.sin(cityView.yaw)*cityView.zoom*Math.cos(cityView.pitch),look.y+Math.sin(cityView.pitch)*cityView.zoom,look.z+Math.cos(cityView.yaw)*cityView.zoom*Math.cos(cityView.pitch)),1-Math.exp(-8*dt));
+  camera.lookAt(look);
+}else if(cameraMode===0||window.surveyView){
   const look=window.surveyView?new THREE.Vector3(toX(district.W/2),1,toZ(district.H/2)):new THREE.Vector3(avatar.position.x,1.1,avatar.position.z);
   const viewZoom=window.surveyView?175:zoom,viewPitch=window.surveyView?1.03:pitch;
   const desired=new THREE.Vector3(look.x+Math.sin(yaw)*viewZoom*Math.cos(viewPitch),look.y+Math.sin(viewPitch)*viewZoom,look.z+Math.cos(yaw)*viewZoom*Math.cos(viewPitch));
@@ -652,9 +687,9 @@ if(cameraMode===0||window.surveyView){
   const lookDir=new THREE.Vector3(Math.sin(charYaw)*10, -pitch*5+1.62, Math.cos(charYaw)*10);
   camera.lookAt(camera.position.clone().add(lookDir));
 }
-sun.target.position.copy(avatar.position);renderer.render(scene,camera);
+sun.position.set(avatar.position.x-15,26,avatar.position.z+14);sun.target.position.copy(avatar.position);renderer.render(scene,camera);
 }
-camera.position.set(toX(world.x)+5,19,toZ(world.y)+28);yaw=.10;pitch=.48;zoom=32;$('loading3d').remove();requestAnimationFrame(frame);
+camera.position.set(toX(world.x)+5,19,toZ(world.y)+28);yaw=.10;pitch=.54;zoom=25;$('loading3d').remove();requestAnimationFrame(frame);
 window.visit3d=i=>{window.dispatchEvent(new CustomEvent('visit-stall',{detail:i}));};
 
 
@@ -739,8 +774,8 @@ window.showCoinFloating=(amount)=>{
   setTimeout(()=>el.remove(),1500);
 };
 
-function mapDraw(c){const cx=c.getContext('2d'),w=c.width,h=c.height,sx=w/district.W,sy=h/district.H;cx.fillStyle='#e6e5cd';cx.fillRect(0,0,w,h);cx.fillStyle='#b7c6b0';cx.fillRect(120*sx,150*sy,1400*sx,1100*sy);for(const r of district.roads){cx.fillStyle='#9baea1';cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}for(const [i,b] of district.halls.entries()){cx.fillStyle=b.color;cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);cx.fillStyle='#fff5d8';cx.font=`bold ${w>300?22:10}px sans-serif`;cx.textAlign='center';cx.fillText('ABCDEFG'[i],(b.x+b.w/2)*sx,(b.y+b.h/2)*sy+4);}cx.fillStyle='#a7b4a3';{const yard=westMarket.truckYard;cx.fillRect(yard.x*sx,yard.y*sy,yard.w*sx,yard.h*sy);}cx.fillRect(4800*sx,2800*sy,2200*sx,390*sy);cx.fillStyle="#a7b98c";cx.fillRect(4650*sx,3530*sy,2450*sx,990*sy);cx.fillStyle="#6ea5ad";cx.fillRect(5110*sx,3725*sy,1520*sx,560*sy);cx.fillStyle='#879f8e';cx.fillRect(3040*sx,2860*sy,520*sx,280*sy);cx.fillStyle='#6c8c73';for(const b of locations.slice(0,7))cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);for(const v of district.vehicles){cx.fillStyle='#c69765';cx.fillRect(v.x*sx-2,v.y*sy-2,4,4);}if(window.customWaypoint){cx.strokeStyle='#ba9553';cx.lineWidth=2;cx.beginPath();cx.arc(window.customWaypoint.x*sx,window.customWaypoint.y*sy,6,0,Math.PI*2);cx.stroke();}cx.fillStyle='#c9794d';cx.beginPath();cx.arc(world.x*sx,world.y*sy,w>300?6:4,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff5dc';cx.lineWidth=2;cx.stroke();}
-host.insertAdjacentHTML('beforeend','<div id="districtMap"><canvas id="miniMap" width="180" height="121" aria-label="Bản đồ nhỏ: khu dân sinh, bảy nhà lồng và bãi xe"></canvas><button id="openMap"><kbd>M</kbd> Bản đồ khu chợ ↗</button><button id="viewAll">Toàn cảnh khu chợ</button></div>');$('openMap').onclick=openMap;$('viewAll').onclick=()=>{window.surveyView=!window.surveyView;$('viewAll').textContent=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';};let mapLast=-1;
+function mapDraw(c){const cx=c.getContext('2d'),w=c.width,h=c.height,sx=w/district.W,sy=h/district.H;cx.fillStyle='#e6e5cd';cx.fillRect(0,0,w,h);cx.fillStyle='#b7c6b0';cx.fillRect(120*sx,150*sy,1400*sx,1100*sy);for(const r of district.roads){cx.fillStyle='#9baea1';cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}for(const [i,b] of district.halls.entries()){cx.fillStyle=b.color;cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);cx.fillStyle='#fff5d8';cx.font=`bold ${w>300?22:10}px sans-serif`;cx.textAlign='center';cx.fillText('ABCDEFG'[i],(b.x+b.w/2)*sx,(b.y+b.h/2)*sy+4);}cx.fillStyle='#a7b4a3';{const yard=westMarket.truckYard;cx.fillRect(yard.x*sx,yard.y*sy,yard.w*sx,yard.h*sy);}cx.fillRect(4800*sx,2800*sy,2200*sx,390*sy);cx.fillStyle='#c3cea9';cx.fillRect(1900*sx,3400*sy,5270*sx,2830*sy);for(const r of district.city.roads){cx.fillStyle='#8e9b94';cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}for(const b of district.city.buildings){const r=b.footprint;cx.fillStyle=b.plot.color;cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}const lake=district.city.lake;cx.fillStyle='#72a5aa';cx.fillRect(lake.x*sx,lake.y*sy,lake.w*sx,lake.h*sy);cx.fillStyle='#879f8e';cx.fillRect(3040*sx,2860*sy,520*sx,280*sy);cx.fillStyle='#6c8c73';for(const b of locations.slice(0,7))cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);for(const v of district.vehicles){cx.fillStyle='#c69765';cx.fillRect(v.x*sx-2,v.y*sy-2,4,4);}if(window.customWaypoint){cx.strokeStyle='#ba9553';cx.lineWidth=2;cx.beginPath();cx.arc(window.customWaypoint.x*sx,window.customWaypoint.y*sy,6,0,Math.PI*2);cx.stroke();}cx.fillStyle='#c9794d';cx.beginPath();cx.arc(world.x*sx,world.y*sy,w>300?6:4,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff5dc';cx.lineWidth=2;cx.stroke();}
+host.insertAdjacentHTML('beforeend','<div id="districtMap"><canvas id="miniMap" width="180" height="152" aria-label="Bản đồ nhỏ: khu dân sinh, bảy nhà lồng và bãi xe"></canvas><button id="openMap"><kbd>M</kbd> Bản đồ khu chợ ↗</button><button id="viewAll">Toàn cảnh khu chợ</button></div>');$('openMap').onclick=openMap;$('viewAll').onclick=()=>{cityView=null;window.surveyView=!window.surveyView;$('viewAll').textContent=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';};let mapLast=-1;
 function updateMiniMap(t){if(t-mapLast<.15)return;mapLast=t;mapDraw($('miniMap'));if($('largeMap'))mapDraw($('largeMap'));}
-function openMap(){const content=$('dialogContent');content.innerHTML='<p class="eyebrow">CHỢ ĐẦU MỐI BÌNH AN</p><h2>Một khu chợ, nhiều ngả đường</h2><p>Khu dân sinh ở góc trên trái. Các nhà lồng và bãi xe nằm bên kia đường nội bộ. Chọn địa điểm để đặt dấu dẫn đường.</p><canvas id="largeMap" width="600" height="403" aria-label="Bản đồ khu chợ, nhấp để đặt điểm đến"></canvas><div class="map-places">'+district.points.map((p,i)=>'<button data-place="'+i+'">'+p.name+'</button>').join('')+'</div><p class="fine-print">Chấm cam: bạn · A–G: nhà lồng · Chấm vàng: xe tải · Không dịch chuyển tức thời.</p>';
-if(!$('shop').open)$('shop').showModal();mapDraw($('largeMap'));function setPoint(p){window.surveyView=false;window.customWaypoint=p;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'Đã đánh dấu '+p.name}));}document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>setPoint(district.points[Number(b.dataset.place)]));$('largeMap').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();setPoint({x:Math.max(60,Math.min(district.W-60,(e.clientX-r.left)/r.width*district.W)),y:Math.max(270,Math.min(district.H-60,(e.clientY-r.top)/r.height*district.H)),name:'Điểm đã chọn'});};}
+function openMap(){const content=$('dialogContent');content.innerHTML='<p class="eyebrow">CHỢ ĐẦU MỐI BÌNH AN</p><h2>Bình An · Thành phố của bạn</h2><p>Chợ cũ ở phía tây bắc, khu đầu mối phía bắc. Đi về phía nam để tới phố thương mại, công viên và biệt thự ven hồ. Chọn địa điểm để nhân vật đi theo đường dẫn.</p><canvas id="largeMap" width="600" height="505" aria-label="Bản đồ khu chợ, nhấp để đặt điểm đến"></canvas><div class="map-places">'+district.points.map((p,i)=>'<button data-place="'+i+'">'+p.name+'</button>').join('')+'</div><p class="fine-print">Chấm cam: bạn · A–G: nhà lồng · Chấm vàng: xe tải · Không dịch chuyển tức thời.</p>';
+content.insertAdjacentHTML('beforeend','<h3>Góc ngắm thành phố</h3><div class="map-places">'+district.city.views.map((v,i)=>'<button data-city-view="'+i+'">'+v.name+'</button>').join('')+'</div><p class="fine-print">Ngắm cảnh bằng camera. Bấm Góc nhìn hoặc di chuyển để trở về nhân vật.</p>');document.querySelectorAll('[data-city-view]').forEach(b=>b.onclick=()=>{walkPath=[];cityView=district.city.views[Number(b.dataset.cityView)];window.surveyView=false;$('shop').close();});if(!$('shop').open)$('shop').showModal();mapDraw($('largeMap'));function setPoint(p){cityView=null;window.surveyView=false;const path=navigator.route({x:world.x,y:world.y},p);if(!path.length){window.dispatchEvent(new CustomEvent('market-toast',{detail:'Chưa tìm được đường tới điểm này.'}));return;}window.customWaypoint=p;walkPath=path;clickRing.visible=false;$('shop').close();window.dispatchEvent(new CustomEvent('market-toast',{detail:'Đang đi tới '+p.name+' · WASD để dừng dẫn đường'}));}document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>setPoint(district.points[Number(b.dataset.place)]));$('largeMap').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();setPoint({x:Math.max(60,Math.min(district.W-60,(e.clientX-r.left)/r.width*district.W)),y:Math.max(270,Math.min(district.H-60,(e.clientY-r.top)/r.height*district.H)),name:'Điểm đã chọn'});};}

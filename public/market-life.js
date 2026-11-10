@@ -30,7 +30,11 @@ export function buildMarketLife({scene,box,cyl,person,floatingLabel,animatePerso
   for(let i=0;i<6;i++)add(40+i,foodStreetRoute,i%3===0?'cart':'buyer');
   for(let i=0;i<6;i++)add(50+i,boulevardRoute,i%2===0?'worker':'buyer');
 
- for(const [hi,h] of district.halls.entries()){const rows=h.h>700?5:4;for(let row=0;row<rows;row+=2)for(const side of [-1,1]){const g=person(['#ba8670','#849d85','#a89b6f','#7f969f'][hi],true);g.position.set(toX(h.x+h.w/2+side*(h.w/2-75)),0,toZ(h.y+90+row*(h.h-176)/(rows-1)));g.rotation.y=side<0?Math.PI/2:-Math.PI/2;g.traverse(m=>{if(m.isMesh)m.castShadow=false;});scene.add(g);vendors.push(g);}}
+ const promenade=[{x:4700,y:4400},{x:4700,y:4800},{x:4800,y:4950},{x:5700,y:4950}];
+ const shoppingStreet=[{x:2250,y:3940},{x:2670,y:3940},{x:3510,y:3940},{x:3930,y:3940}];
+ for(let i=0;i<4;i++)add(60+i,shoppingStreet);
+ for(let i=0;i<4;i++)add(64+i,promenade);
+ for(const [hi,h] of district.halls.entries()){const rows=h.h>700?5:4;for(let row=0;row<rows;row+=2)for(const side of [-1,1]){const g=person(['#ba8670','#849d85','#a89b6f','#7f969f'][hi%4],true);g.position.set(toX(h.x+h.w/2+side*(h.w/2-75)),0,toZ(h.y+90+row*(h.h-176)/(rows-1)));g.rotation.y=side<0?Math.PI/2:-Math.PI/2;g.traverse(m=>{if(m.isMesh)m.castShadow=false;});scene.add(g);vendors.push(g);}}
  function choosePath(a){a.index=(a.index+1)%a.route.length;const end=a.route[a.index];const key=[Math.round(a.x),Math.round(a.y),end.x,end.y].join(':');let path=routeCache.get(key);if(!path){path=navigator.route({x:a.x,y:a.y},end);if(routeCache.size>180)routeCache.clear();routeCache.set(key,path);}a.path=path.map(p=>({...p}));if(!a.path.length)a.wait=4;}
  function update(time,dt){const max=density==='busy'?actors.length:18;let waiting=0;for(let i=0;i<actors.length;i++){const a=actors[i];const enabled=density==='busy'||i%2===0||a.role==='worker';a.g.visible=enabled&&Math.hypot(world.x-a.x,world.y-a.y)<1900;if(!enabled)continue;if(a.wait>0){a.wait-=dt;a.bubble.visible=a.wait>1&&a.g.visible&&Math.hypot(world.x-a.x,world.y-a.y)<450;waiting++;animatePerson(a.g,time,false);if(a.wait<=0)choosePath(a);continue;}
  a.bubble.visible=false;const next=a.path[0];if(!next){a.wait=3+(i%5);continue;}const dx=next.x-a.x,dy=next.y-a.y,d=Math.hypot(dx,dy);const pause=Math.hypot(world.x-a.x,world.y-a.y)<32;if(!pause){const step=Math.min(d,a.speed*dt);if(d){a.x+=dx/d*step;a.y+=dy/d*step;a.g.rotation.y=Math.atan2(dx,dy);}if(d<2)a.path.shift();}a.g.position.set(toX(a.x),0,toZ(a.y));animatePerson(a.g,time,!pause);}

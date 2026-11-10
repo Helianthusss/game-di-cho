@@ -1,4 +1,5 @@
 import * as THREE from './three.module.min.js';
+import {buildCity} from './city.js';
 // A fictional wholesale-market district, inspired by Vietnamese market logistics.
 // The original playable neighborhood remains in the northwest corner.
 
@@ -383,9 +384,9 @@ function gasStation(scene,x,z){
   scene.add(gs);return gs;
 }
 
-const obstacles=[],halls=[],vehicles=[];const W=7600,H=5100;
+const obstacles=[],halls=[],vehicles=[];const W=7600,H=6400;
 function slab(x,y,w,h,color,height=.025){return box(scene,w/40,height,h/40,color,toX(x+w/2),height/2,toZ(y+h/2));}
-const roads=[{x:1640,y:120,w:240,h:4720},{x:90,y:1260,w:7420,h:240},{x:1640,y:2500,w:5870,h:240},{x:4320,y:120,w:240,h:4720},{x:1640,y:3190,w:5870,h:200},{x:7240,y:120,w:240,h:4720},{x:4320,y:4550,w:3160,h:240},{x:1440,y:3710,w:440,h:210}];
+const roads=[{x:1640,y:120,w:240,h:3270},{x:90,y:1260,w:7420,h:240},{x:1640,y:2500,w:5870,h:240},{x:4320,y:120,w:240,h:3270},{x:1640,y:3190,w:5870,h:200},{x:7240,y:120,w:240,h:3270},{x:1440,y:3710,w:440,h:210}];
 for(const r of roads){slab(r.x-22,r.y-22,r.w+44,r.h+44,'#c1c6b2',.04);slab(r.x,r.y,r.w,r.h,'#687b78',.055);if(r.h>r.w){for(let yy=r.y+40;yy<r.y+r.h;yy+=160)slab(r.x+r.w/2-3,yy,6,70,'#e6dcaf',.065);}else for(let xx=r.x+40;xx<r.x+r.w;xx+=160)slab(xx,r.y+r.h/2-3,70,6,'#e6dcaf',.065);}
 // Give the west-side buildings separate plazas with pedestrian links.
 slab(210,1590,1220,740,'#d7caab',.025);
@@ -495,50 +496,8 @@ for(let i=0;i<12;i++){const x=300+i*380;cyl(scene,.13,2.2,'#917f5e',toX(x),1.1,t
   buildFoodPlaza(scene, box, cyl, sphere, label, person, mat, toX, toZ, obstacles);
   buildHistoricTownhouses(scene, box, cyl, sphere, label, mat, toX, toZ, obstacles);
 
-  // The lakeside neighborhood connects to both north–south market roads.
-  slab(4650,3530,2450,990,'#a7b98c',.04);
-  slab(5050,3660,1640,690,'#d6c9a8',.055);
-  const lake=box(scene,38,.03,14,'#6ea5ad',toX(5870),.07,toZ(4005));
-  lake.receiveShadow=false;
-  obstacles.push({x:5110,y:3725,w:1520,h:560});
-  for(let i=0;i<9;i++){
-    const x=5210+i*165;
-    slab(x,3860+(i%3)*135,85,4,'#a1c4c2',.09);
-    for(const y of [3600,4400]){
-      cyl(scene,.12,2.4,'#846d51',toX(x),1.2,toZ(y));
-      sphere(scene,.95,'#739368',toX(x),2.7,toZ(y));
-    }
-  }
-  label(scene,'HỒ BÌNH AN',toX(5870),4,toZ(4350),11,'#527a70','#fff1cd','CÔNG VIÊN VEN HỒ',true);
-
-  for(let i=0;i<6;i++){
-    const x=4760+i*390,y=4910;
-    const style=['#e8dbc5','#e1d3b9','#d3dcd2'][i%3];
-    slab(x-150,y-95,300,220,'#9caf84',.04);
-    box(scene,5.4,3.8,3.6,style,toX(x),1.9,toZ(y));
-    box(scene,5.8,.24,4,'#5c6d6a',toX(x),3.92,toZ(y));
-    box(scene,3.4,1.9,2.8,style,toX(x-25),4.9,toZ(y+12));
-    box(scene,3.8,.22,3.15,'#586b66',toX(x-25),5.95,toZ(y+12));
-    for(const offset of [-1.6,1.6]){
-      box(scene,1.25,1.15,.08,'#71949b',toX(x)+offset,2.8,toZ(y)-1.82);
-    }
-    box(scene,1.3,2.2,.08,'#605d4c',toX(x),1.1,toZ(y)-1.82);
-    box(scene,2.1,.12,1.3,'#b8ae99',toX(x),.1,toZ(y)-2.5);
-    obstacles.push({x:x-108,y:y-72,w:216,h:144});
-  }
-  const shops=['SIÊU THỊ MINI','TIỆM CÀ PHÊ','NHÀ THUỐC','BƯU CỤC'];
-  for(const [i,name] of shops.entries()){
-    const x=4740+i*610,y=3465;
-    box(scene,6,6.7,3.5,'#e8deca',toX(x),3.35,toZ(y));
-    for(const offset of [-1.7,0,1.7]){
-      for(const floor of [3.8,5.6])box(scene,1.1,1.1,.08,'#789ca2',toX(x)+offset,floor,toZ(y)+1.76);
-    }
-    box(scene,5.4,2,.08,'#6c8b8d',toX(x),1.15,toZ(y)+1.76);
-    box(scene,6.15,.18,1,'#966b59',toX(x),2.35,toZ(y)+2.2);
-    label(scene,name,toX(x),2.85,toZ(y)+1.82,5.6,'#fff0cf','#45685e','',false,0);
-    obstacles.push({x:x-120,y:y-70,w:240,h:140});
-  }
-  label(scene,'KHU ĐÔ THỊ BÌNH AN',toX(4450),5,toZ(3510),11,'#496b59','#fff1cd','PHỐ THƯƠNG MẠI · BIỆT THỰ',true);
+  const city=buildCity({scene,box,cyl,sphere,label,mat,toX,toZ,obstacles});
+  roads.push(...city.roads);
 
   const points=[
   {name:'Bến tàu Chợ nổi Miền Tây',x:320,y:1250},
@@ -559,12 +518,10 @@ for(let i=0;i<12;i++){const x=300+i*380;cyl(scene,.13,2.2,'#917f5e',toX(x),1.1,t
   {name:'Nhà lồng F · Gạo và gia vị',x:6525,y:1170},
   {name:'Nhà lồng G · Bao bì và vật tư',x:5900,y:1610},
   {name:'Bãi trung chuyển phía đông',x:6000,y:3150},
-  {name:'Phố thương mại Bình An',x:5350,y:3580},
-  {name:'Công viên Hồ Bình An',x:5870,y:4390},
-  {name:'Dãy biệt thự ven hồ',x:5920,y:4800}
+  ...city.points
 ];
-function update(time,dt){for(const h of halls){const inside=world.x>h.x-60&&world.x<h.x+h.w+60&&world.y>h.y-80&&world.y<h.y+h.h+80;h.roofMat.opacity=THREE.MathUtils.damp(h.roofMat.opacity,inside?.12:1,7,dt);h.roofMat.depthWrite=!inside;}
+function update(time,dt,viewWorld=world){city.update(viewWorld,!!globalThis.window?.surveyView);for(const h of halls){const inside=world.x>h.x-60&&world.x<h.x+h.w+60&&world.y>h.y-80&&world.y<h.y+h.h+80;h.roofMat.opacity=THREE.MathUtils.damp(h.roofMat.opacity,inside?.12:1,7,dt);h.roofMat.depthWrite=!inside;}
 for(const v of vehicles){if(Math.hypot(world.x-v.x,world.y-v.y)>120)v.progress=(v.progress+v.speed*dt)%length;const s=segments.find(s=>v.progress<s.start+s.len)||segments[0],t=(v.progress-s.start)/s.len;v.x=s.p.x+(s.q.x-s.p.x)*t;v.y=s.p.y+(s.q.y-s.p.y)*t;v.g.position.set(toX(v.x),0,toZ(v.y));v.g.rotation.y=Math.atan2(s.q.x-s.p.x,s.q.y-s.p.y);}}
-function zone(x,y){if(y>3400&&x>4290)return y>4550?'BIỆT THỰ VEN HỒ':'KHU ĐÔ THỊ BÌNH AN';if(x<1550&&y<1600)return 'KHU CHỢ DÂN SINH';if(x<1550&&y>4500)return 'PHỐ CỔ BÌNH AN';if(x<1550&&y>3300)return 'BÃI XE · KHU BỐC DỠ';if(x<1550&&y>2500)return 'PHỐ ẨM THỰC';if(x<1550&&y>1600)return 'CHỢ THỊT VÀ TRÁI CÂY';for(const h of halls)if(x>h.x-100&&x<h.x+h.w+100&&y>h.y-100&&y<h.y+h.h+100)return h.name+' · '+h.sub;if(x>=4800&&y>2750)return 'BÃI TRUNG CHUYỂN PHÍA ĐÔNG';if(y>2800)return 'KHO GIAO NHẬN';return 'ĐƯỜNG NỘI BỘ · CHỢ ĐẦU MỐI';}
-return {W,H,roads,halls,points,obstacles,vehicles,update,zone};
+function zone(x,y){if(y>5300&&x>4500)return 'BIỆT THỰ VEN HỒ';if(y>5300&&x>1900)return 'KHU DÂN CƯ BÌNH AN';if(y>3400&&x>4550)return 'CÔNG VIÊN · HỒ BÌNH AN';if(y>3400&&x>1900)return 'PHỐ THƯƠNG MẠI BÌNH AN';if(x<1550&&y<1600)return 'KHU CHỢ DÂN SINH';if(x<1550&&y>4500)return 'PHỐ CỔ BÌNH AN';if(x<1550&&y>3300)return 'BÃI XE · KHU BỐC DỠ';if(x<1550&&y>2500)return 'PHỐ ẨM THỰC';if(x<1550&&y>1600)return 'CHỢ THỊT VÀ TRÁI CÂY';for(const h of halls)if(x>h.x-100&&x<h.x+h.w+100&&y>h.y-100&&y<h.y+h.h+100)return h.name+' · '+h.sub;if(x>=4800&&y>2750)return 'BÃI TRUNG CHUYỂN PHÍA ĐÔNG';if(y>2800)return 'KHO GIAO NHẬN';return 'ĐƯỜNG NỘI BỘ · CHỢ ĐẦU MỐI';}
+return {W,H,roads,halls,points,obstacles,vehicles,update,zone,city};
 }

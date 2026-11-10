@@ -1,6 +1,7 @@
+import {cityLayout} from '../public/city-layout.js';
 import {readFileSync,writeFileSync,mkdirSync,readdirSync} from 'node:fs';
-const assets={};for(const f of ['index.html','game.js','online.js','world3d.js','market-life.js','market-audio.js','navigation.js','wholesale.js','style3d.css','three.module.min.js','three-LICENSE.txt'])assets['/'+f]=readFileSync('public/'+f,'utf8');assets['/']=assets['/index.html'];
+const assets={};for(const f of ['index.html','game.js','online.js','world3d.js','market-life.js','market-audio.js','navigation.js','wholesale.js','city.js','city-layout.js','style3d.css','three.module.min.js','three-LICENSE.txt'])assets['/'+f]=readFileSync('public/'+f,'utf8');assets['/']=assets['/index.html'];
 mkdirSync('dist/server',{recursive:true});mkdirSync('dist/.openai',{recursive:true});
-writeFileSync('dist/server/index.js','const ASSETS='+JSON.stringify(assets)+';\n'+readFileSync('worker/missions.js','utf8')+'\n'+readFileSync('worker/index.js','utf8'));
+writeFileSync('dist/server/index.js','const ASSETS='+JSON.stringify(assets)+';\nconst CITY_RESTAURANT='+JSON.stringify(cityLayout.plots.find(p=>p.id==='shop-n-1').entrance)+';\n'+readFileSync('worker/missions.js','utf8')+'\n'+readFileSync('worker/index.js','utf8'));
 writeFileSync('dist/.openai/hosting.json',readFileSync('.openai/hosting.json'));
 console.log('Built server and embedded game assets');

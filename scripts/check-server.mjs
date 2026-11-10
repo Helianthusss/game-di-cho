@@ -79,4 +79,22 @@ assert.equal((await call('a','wholesale',{action:'unload',shipmentId})).status,4
 console.log('PASS: wholesale purchase, transport, unload and replay protection');
 
 }
+
+// A city shipment survives reloading, requires the city restaurant, and pays once.
+await call('city-driver','presence',{x:3300,y:3320});
+const cityStart=(await call('city-driver','me')).player;
+const cityPickup=await call('city-driver','haul',{action:'pickup',destination:'city'});
+assert.equal(cityPickup.status,200);
+assert.equal((await call('city-driver','me')).player.haul.destination,'city');
+await call('city-driver','presence',{x:1160,y:945});
+assert.equal((await call('city-driver','haul',{action:'deliver'})).status,409);
+await call('city-driver','presence',{x:2670,y:3940});
+const cityResults=await Promise.all([call('city-driver','haul',{action:'deliver'}),call('city-driver','haul',{action:'deliver'})]);
+assert.equal(cityResults.filter(r=>r.status===200).length,1);
+const cityEnd=(await call('city-driver','me')).player;
+assert.equal(cityEnd.coins,cityStart.coins+55);
+assert.equal(cityEnd.xp,cityStart.xp+25);
+assert.equal(cityEnd.haul.active,false);
+assert.equal((await call('city-driver','haul',{action:'deliver'})).status,409);
+console.log('PASS: city shipment destination, persistence and concurrent payout protection');
 DB.close();
