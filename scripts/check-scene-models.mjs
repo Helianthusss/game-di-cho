@@ -16,7 +16,7 @@ const district=buildWholesaleDistrict({scene,box,cyl,sphere,mat,label:()=>{},per
 assert.equal(district.halls.length,7);assert(district.vehicles.length>0);assert(district.obstacles.length>0);
 district.update(1,.016);world.x=2500;world.y=500;district.update(2,.016);
 const navigator=createNavigator(district.obstacles,{right:district.W-60,bottom:district.H-60});
-for(const destination of district.points.slice(-7)){
+for(const destination of district.points.filter((_,i)=>[1,2,3,4,11].includes(i)||i>=14)){
   const path=navigator.route({x:4440,y:1380},destination);
   assert.deepEqual(path.at(-1),{x:destination.x,y:destination.y},destination.name);
 }

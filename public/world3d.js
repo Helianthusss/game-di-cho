@@ -1,5 +1,5 @@
 import * as THREE from './three.module.min.js';
-import {buildWholesaleDistrict} from './wholesale.js';
+import {buildWholesaleDistrict,westMarket} from './wholesale.js';
 import {createNavigator} from './navigation.js';
 import {buildMarketLife} from './market-life.js';
 import {createMarketAudio} from './market-audio.js';
@@ -264,10 +264,10 @@ for(let sx=-20;sx<=20;sx+=3.5){
 }
 // Second row of Vietnamese commercial shop-houses along the boulevard
 for(let i=0;i<7;i++){
-  const g=new THREE.Group();g.position.set(-24+i*7.5,0,46);g.rotation.y=Math.PI;scene.add(g);
+  const g=new THREE.Group();g.position.set(-15+i*4.8,0,toZ(3110));g.rotation.y=Math.PI;scene.add(g);
   const c=['#f39c12','#e74c3c','#16a085','#2980b9'][i%4];
-  box(g,5.2,5.5,4,'#e0d0b0',0,2.75,0);
-  box(g,5.4,1,4.2,'#c0392b',0,5.75,0); // roof eaves
+  box(g,4.1,5.5,4,'#e0d0b0',0,2.75,0);
+  box(g,4.4,1,4.2,'#c0392b',0,5.75,0); // roof eaves
   box(g,3.8,2.4,.1,c,0,1.2,2.05); // shopfront
   box(g,1.4,1.4,.1,'#2c3e50',0,4.0,2.05); // upper window
   box(g,2.2,.15,.6,'#7f8c8d',0,3.2,2.2); // balcony
@@ -471,12 +471,12 @@ function distance(b,x,y){return Math.hypot(Math.max(b.x-x,0,x-b.x-b.w),Math.max(
 
 let speedBoostUntil=0, banhMiBonus=0;
 const extraPlaces=[
-  {x:650,y:1950,w:120,h:100,name:'Quán Bún Bò Huế Cô Nhung',type:'food_bunbo'},
-  {x:650,y:2050,w:120,h:100,name:'Quán Bánh Xèo Miền Tây',type:'food_banhxeo'},
-  {x:650,y:2150,w:120,h:100,name:'Quầy Chè Ba Màu Cốt Dừa',type:'food_che'},
+  {x:westMarket.food.x-500,y:westMarket.food.y-60,w:120,h:100,name:'Quán Bún Bò Huế Cô Nhung',type:'food_bunbo'},
+  {x:westMarket.food.x-280,y:westMarket.food.y-60,w:120,h:100,name:'Quán Bánh Xèo Miền Tây',type:'food_banhxeo'},
+  {x:westMarket.food.x-60,y:westMarket.food.y-60,w:120,h:100,name:'Quầy Chè Ba Màu Cốt Dừa',type:'food_che'},
   {x:320,y:1250,w:120,h:100,name:'Ghe Dưa Hấu Bến Sông',type:'boat_watermelon'},
-  {x:1450,y:1280,w:120,h:100,name:'Quảng Trường Tháp Đồng Hồ',type:'clock_tower'},
-  {x:850,y:1650,w:160,h:120,name:'Nhà Lồng 2 · Vựa Sầu Riêng & Thịt Tươi',type:'pavilion2'},
+  {x:westMarket.tower.x-60,y:westMarket.tower.y-50,w:120,h:100,name:'Quảng Trường Tháp Đồng Hồ',type:'clock_tower'},
+  {x:westMarket.pavilion.x-80,y:westMarket.pavilion.y-60,w:160,h:120,name:'Nhà Lồng 2 · Vựa Sầu Riêng & Thịt Tươi',type:'pavilion2'},
   {x:520,y:1180,w:90,h:90,name:'Xe Nước Mía Siêu Sạch',type:'food_nuocmia'},
   {x:820,y:1180,w:90,h:90,name:'Tiệm Bánh Mì Sài Gòn',type:'food_banhmi'},
   {x:1120,y:1180,w:90,h:90,name:'Quán Cà Phê Cóc & Trà Đá',type:'food_caphe'},
@@ -739,7 +739,7 @@ window.showCoinFloating=(amount)=>{
   setTimeout(()=>el.remove(),1500);
 };
 
-function mapDraw(c){const cx=c.getContext('2d'),w=c.width,h=c.height,sx=w/district.W,sy=h/district.H;cx.fillStyle='#e6e5cd';cx.fillRect(0,0,w,h);cx.fillStyle='#b7c6b0';cx.fillRect(120*sx,150*sy,1400*sx,1100*sy);for(const r of district.roads){cx.fillStyle='#9baea1';cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}for(const [i,b] of district.halls.entries()){cx.fillStyle=b.color;cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);cx.fillStyle='#fff5d8';cx.font=`bold ${w>300?22:10}px sans-serif`;cx.textAlign='center';cx.fillText('ABCDEFG'[i],(b.x+b.w/2)*sx,(b.y+b.h/2)*sy+4);}cx.fillStyle='#a7b4a3';cx.fillRect(120*sx,1810*sy,1320*sx,1450*sy);cx.fillRect(4800*sx,2800*sy,2200*sx,390*sy);cx.fillStyle="#a7b98c";cx.fillRect(4650*sx,3530*sy,2450*sx,990*sy);cx.fillStyle="#6ea5ad";cx.fillRect(5110*sx,3725*sy,1520*sx,560*sy);cx.fillStyle='#879f8e';cx.fillRect(3040*sx,2860*sy,520*sx,280*sy);cx.fillStyle='#6c8c73';for(const b of locations.slice(0,7))cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);for(const v of district.vehicles){cx.fillStyle='#c69765';cx.fillRect(v.x*sx-2,v.y*sy-2,4,4);}if(window.customWaypoint){cx.strokeStyle='#ba9553';cx.lineWidth=2;cx.beginPath();cx.arc(window.customWaypoint.x*sx,window.customWaypoint.y*sy,6,0,Math.PI*2);cx.stroke();}cx.fillStyle='#c9794d';cx.beginPath();cx.arc(world.x*sx,world.y*sy,w>300?6:4,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff5dc';cx.lineWidth=2;cx.stroke();}
+function mapDraw(c){const cx=c.getContext('2d'),w=c.width,h=c.height,sx=w/district.W,sy=h/district.H;cx.fillStyle='#e6e5cd';cx.fillRect(0,0,w,h);cx.fillStyle='#b7c6b0';cx.fillRect(120*sx,150*sy,1400*sx,1100*sy);for(const r of district.roads){cx.fillStyle='#9baea1';cx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);}for(const [i,b] of district.halls.entries()){cx.fillStyle=b.color;cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);cx.fillStyle='#fff5d8';cx.font=`bold ${w>300?22:10}px sans-serif`;cx.textAlign='center';cx.fillText('ABCDEFG'[i],(b.x+b.w/2)*sx,(b.y+b.h/2)*sy+4);}cx.fillStyle='#a7b4a3';{const yard=westMarket.truckYard;cx.fillRect(yard.x*sx,yard.y*sy,yard.w*sx,yard.h*sy);}cx.fillRect(4800*sx,2800*sy,2200*sx,390*sy);cx.fillStyle="#a7b98c";cx.fillRect(4650*sx,3530*sy,2450*sx,990*sy);cx.fillStyle="#6ea5ad";cx.fillRect(5110*sx,3725*sy,1520*sx,560*sy);cx.fillStyle='#879f8e';cx.fillRect(3040*sx,2860*sy,520*sx,280*sy);cx.fillStyle='#6c8c73';for(const b of locations.slice(0,7))cx.fillRect(b.x*sx,b.y*sy,b.w*sx,b.h*sy);for(const v of district.vehicles){cx.fillStyle='#c69765';cx.fillRect(v.x*sx-2,v.y*sy-2,4,4);}if(window.customWaypoint){cx.strokeStyle='#ba9553';cx.lineWidth=2;cx.beginPath();cx.arc(window.customWaypoint.x*sx,window.customWaypoint.y*sy,6,0,Math.PI*2);cx.stroke();}cx.fillStyle='#c9794d';cx.beginPath();cx.arc(world.x*sx,world.y*sy,w>300?6:4,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff5dc';cx.lineWidth=2;cx.stroke();}
 host.insertAdjacentHTML('beforeend','<div id="districtMap"><canvas id="miniMap" width="180" height="121" aria-label="Bản đồ nhỏ: khu dân sinh, bảy nhà lồng và bãi xe"></canvas><button id="openMap"><kbd>M</kbd> Bản đồ khu chợ ↗</button><button id="viewAll">Toàn cảnh khu chợ</button></div>');$('openMap').onclick=openMap;$('viewAll').onclick=()=>{window.surveyView=!window.surveyView;$('viewAll').textContent=window.surveyView?'Quay về nhân vật':'Toàn cảnh khu chợ';};let mapLast=-1;
 function updateMiniMap(t){if(t-mapLast<.15)return;mapLast=t;mapDraw($('miniMap'));if($('largeMap'))mapDraw($('largeMap'));}
 function openMap(){const content=$('dialogContent');content.innerHTML='<p class="eyebrow">CHỢ ĐẦU MỐI BÌNH AN</p><h2>Một khu chợ, nhiều ngả đường</h2><p>Khu dân sinh ở góc trên trái. Các nhà lồng và bãi xe nằm bên kia đường nội bộ. Chọn địa điểm để đặt dấu dẫn đường.</p><canvas id="largeMap" width="600" height="403" aria-label="Bản đồ khu chợ, nhấp để đặt điểm đến"></canvas><div class="map-places">'+district.points.map((p,i)=>'<button data-place="'+i+'">'+p.name+'</button>').join('')+'</div><p class="fine-print">Chấm cam: bạn · A–G: nhà lồng · Chấm vàng: xe tải · Không dịch chuyển tức thời.</p>';
