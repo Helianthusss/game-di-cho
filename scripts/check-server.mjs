@@ -1,3 +1,4 @@
+import {MARKET_OFFSET as MO,spots} from '../public/city-layout.js';const mp=(x,y)=>({x:x+MO.x,y:y+MO.y});
 import {readFileSync,mkdtempSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import assert from 'node:assert/strict';import {persistentDB} from './persistent-db.mjs';
 const DB=persistentDB(join(mkdtempSync(join(tmpdir(),'market-check-')),'db.sqlite'));await DB.migrate(readFileSync('db/schema.sql','utf8'));await DB.migrate(readFileSync('drizzle/0001_progression.sql','utf8'));await DB.migrate(readFileSync('drizzle/0002_gameplay.sql','utf8'));await DB.migrate(readFileSync('drizzle/0003_wholesale_jobs.sql','utf8'));await DB.migrate(readFileSync('drizzle/0004_customer_demand.sql','utf8'));await DB.migrate(readFileSync('drizzle/0005_wholesale_shipments.sql','utf8'));
 const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(readFileSync('dist/server/index.js')).toString('base64'));
@@ -15,7 +16,7 @@ for(let round=0;round<3;round++){
  const mission=(await call('a','me')).player.mission;
  for(let item=0;item<4;item++){if(!(mission.mask&(1<<item)))continue;assert.equal((await call('a','quest',{action:'buy',item})).status,200);assert.equal((await call('a','quest',{action:'buy',item})).status,409);}
  assert.equal((await call('a','complete',{})).status,409);
- const destinations={5:{x:800,y:890},4:{x:1160,y:945},3:{x:470,y:945}};await call('a','presence',destinations[mission.destination]);
+ const destinations={5:mp(800,890),4:mp(1160,945),3:mp(470,945)};await call('a','presence',destinations[mission.destination]);
  assert.equal((await call('a','complete',{})).status,200);assert.equal((await call('a','complete',{})).status,409);
  if(round<2)assert.equal((await call('a','rent',{name:'Early'})).status,409);
 }
@@ -30,7 +31,7 @@ assert.equal((await call('a','trade',{seller:a.publicId,price:8,requestId:crypto
 assert.equal((await call('b','trade',{seller:a.publicId,price:5,requestId:crypto.randomUUID()})).status,409);
 for(let i=0;i<4;i++)assert.equal((await call('b','trade',{seller:a.publicId,price:8,requestId:crypto.randomUUID()})).status,200);
 const before=(await call('b','me')).player.coins;assert.equal((await call('b','trade',{seller:a.publicId,price:8,requestId:crypto.randomUUID()})).status,409);assert.equal((await call('b','me')).player.coins,before);
-await call('a','presence',{x:800,y:650});const seen=await call('b','presence',{x:810,y:650});assert.equal(seen.peers[0].name,'Cô An');assert(!('id' in seen.peers[0]));
+await call('a','presence',mp(800,650));const seen=await call('b','presence',mp(810,650));assert.equal(seen.peers[0].name,'Cô An');assert(!('id' in seen.peers[0]));
 await call('a','stock',{});for(let i=0;i<4;i++)await call('d','trade',{seller:a.publicId,price:8,requestId:crypto.randomUUID()});const races=await Promise.all(['e','f'].map(id=>call(id,'trade',{seller:a.publicId,price:8,requestId:crypto.randomUUID()})));assert.deepEqual(races.map(r=>r.status).sort(),[200,409]);
 // Quality changes both the server-side price and the XP reward.
 const bad=await call('q','quest',{action:'buy',item:0,quality:'fake'});assert.equal(bad.status,400);
@@ -38,15 +39,15 @@ assert.equal((await call('q','quest',{action:'bargain',item:0,offer:30})).accept
 assert.equal((await call('q','quest',{action:'bargain',item:0,offer:10})).accepted,true);
 assert.equal((await call('q','quest',{action:'bargain',item:0,offer:5})).status,409);
 for(let item=0;item<4;item++)assert.equal((await call('q','quest',{action:'buy',item,quality:'fresh'})).status,200);
-await call('q','presence',{x:800,y:890});const fresh=await call('q','complete',{});assert.equal(fresh.player.coins,100);assert.equal(fresh.xp,96);
+await call('q','presence',mp(800,890));const fresh=await call('q','complete',{});assert.equal(fresh.player.coins,100);assert.equal(fresh.xp,96);
 // Serving NPCs must happen at the physical stall; one paid order per slot.
-assert.equal((await call('a','serve',{})).status,409);await call('a','stock',{});await call('a','presence',{x:1370,y:1090});
+assert.equal((await call('a','serve',{})).status,409);await call('a','stock',{});await call('a','presence',mp(1370,1090));
 const offer=await call('a','customer');const pre=(await call('a','me')).player.coins;const served=await call('a','serve',{});assert.equal(served.status,200);assert.equal(served.player.coins,pre+offer.quantity*8);assert.equal((await call('a','serve',{})).status,409);
 // The expanded map preserves large positions and supports an actual warehouse route.
 assert.equal((await call('h','haul',{action:'pickup'})).status,409);
-await call('h','presence',{x:3300,y:3320});assert.equal((await call('h','haul',{action:'pickup'})).status,200);assert.equal((await call('h','haul',{action:'pickup'})).status,409);
-assert.equal((await call('h','haul',{action:'deliver'})).status,409);await call('h','presence',{x:1160,y:945});const haul=await call('h','haul',{action:'deliver'});assert.equal(haul.status,200);assert.equal(haul.player.coins,185);assert.equal(haul.player.xp,25);assert.equal(haul.player.jobs,0);assert.equal((await call('h','haul',{action:'deliver'})).status,409);
-await call('h','presence',{x:3300,y:3320});assert.equal((await call('h','haul',{action:'pickup'})).status,409);
+await call('h','presence',spots.warehouseFront);assert.equal((await call('h','haul',{action:'pickup'})).status,200);assert.equal((await call('h','haul',{action:'pickup'})).status,409);
+assert.equal((await call('h','haul',{action:'deliver'})).status,409);await call('h','presence',mp(1160,945));const haul=await call('h','haul',{action:'deliver'});assert.equal(haul.status,200);assert.equal(haul.player.coins,185);assert.equal(haul.player.xp,25);assert.equal(haul.player.jobs,0);assert.equal((await call('h','haul',{action:'deliver'})).status,409);
+await call('h','presence',spots.warehouseFront);assert.equal((await call('h','haul',{action:'pickup'})).status,409);
 // Each customer group enforces its own budget, not the old fixed 12K cap.
 await DB.prepare('UPDATE players SET coins=1000 WHERE id=?').bind('a').run();await DB.prepare('UPDATE shops SET stock=stock+50 WHERE owner=?').bind(a.publicId).run();
 for(const [slot,budget] of [9,12,10,15].entries()){
@@ -60,7 +61,7 @@ const requestId=crypto.randomUUID();
 await DB.prepare('UPDATE players SET coins=1000 WHERE id=?').bind('a').run();
 const original=(await call('a','me')).player;
 assert.equal((await call('a','wholesale',{action:'buy',requestId})).status,409);
-await call('a','presence',{x:2610,y:735});
+await call('a','presence',spots.hallAFront);
 const purchased=await call('a','wholesale',{action:'buy',requestId});
 assert.equal(purchased.status,200);
 assert.equal(purchased.player.coins,970);
@@ -69,7 +70,7 @@ assert.equal((await call('a','wholesale',{action:'buy',requestId})).player.coins
 assert.equal((await call('a','wholesale',{action:'buy',requestId:crypto.randomUUID()})).status,409);
 const shipmentId=purchased.player.cargo.id;
 assert.equal((await call('a','wholesale',{action:'unload',shipmentId})).status,409);
-await call('a','presence',{x:1370,y:1090});
+await call('a','presence',mp(1370,1090));
 const unloaded=await call('a','wholesale',{action:'unload',shipmentId});
 assert.equal(unloaded.status,200);
 assert.equal(unloaded.player.shop.stock,original.shop.stock+15);
@@ -81,14 +82,14 @@ console.log('PASS: wholesale purchase, transport, unload and replay protection')
 }
 
 // A city shipment survives reloading, requires the city restaurant, and pays once.
-await call('city-driver','presence',{x:3300,y:3320});
+await call('city-driver','presence',spots.warehouseFront);
 const cityStart=(await call('city-driver','me')).player;
 const cityPickup=await call('city-driver','haul',{action:'pickup',destination:'city'});
 assert.equal(cityPickup.status,200);
 assert.equal((await call('city-driver','me')).player.haul.destination,'city');
-await call('city-driver','presence',{x:1160,y:945});
+await call('city-driver','presence',mp(1160,945));
 assert.equal((await call('city-driver','haul',{action:'deliver'})).status,409);
-await call('city-driver','presence',{x:2670,y:3940});
+await call('city-driver','presence',spots.restaurant);
 const cityResults=await Promise.all([call('city-driver','haul',{action:'deliver'}),call('city-driver','haul',{action:'deliver'})]);
 assert.equal(cityResults.filter(r=>r.status===200).length,1);
 const cityEnd=(await call('city-driver','me')).player;

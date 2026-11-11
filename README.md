@@ -10,7 +10,7 @@ Browser-based 3D Vietnamese market game with persistent profiles and a shared pr
 - E: interact with the nearest stall, recipient or personal business counter.
 - Tap a shopping-list item to guide the gold marker to its stall.
 
-The map includes a neighborhood market, four open-aisle wholesale halls, internal roads with moving trucks, loading/parking bays and a warehouse. A minimap and M map panel provide waypoints; an overview camera shows the district. This is a fictional layout inspired by Vietnamese wholesale markets, not a measured replica of Thu Duc or Dong Xuan.
+The map follows design option 02 (`../thiet-ke-binh-an`): a 280 × 170 m town inside a ring road. The traditional market with four gates sits on the west by the river; three wholesale halls, a rear truck lane, truck yard and warehouse are to the north; a shophouse boulevard, the central restaurant and the clock-tower square are in the centre; old residential lanes and the boarding house are south-west; the lakeside gate leads east to the lake park, villas and apartments. An orange delivery route links boarding house, market, restaurant and lakeside gate. All positions come from `public/city-layout.js`, which the build also injects into the server. A minimap and M map panel provide waypoints; an overview camera shows the district. This is a fictional layout inspired by Vietnamese wholesale markets, not a measured replica of Thu Duc or Dong Xuan.
 
 A separate transport job pays 35K and 25 XP for physically collecting a parcel at the warehouse and delivering it to Chi Ut. Collection has a two-minute cooldown and does not replace the three main orders required to own a stall.
 

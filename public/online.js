@@ -74,7 +74,7 @@ function haulDialog(route='market'){
   if($('switchHaul'))$('switchHaul').onclick=()=>haulDialog(city?'market':'city');
   $('haulAction').onclick=async()=>{
     if(!near){
-      const point=h.active&&city?{...cityPoint,name:recipient}:h.active?{x:1160,y:945,name:recipient}:{x:3300,y:3320,name:'Kho giao nhận'};
+      const point=h.active&&city?{...cityPoint,name:recipient}:h.active?{...window.layoutSpots.stall4Front,name:recipient}:{...window.layoutSpots.warehouseFront,name:'Kho giao nhận'};
       window.customWaypoint=point;navigationTarget=null;
       $('shop').close();window.walkToCityPoint?.(point);return;
     }
@@ -90,7 +90,7 @@ function haulDialog(route='market'){
 
 window.getWholesaleCargo=()=>myPlayer?.cargo;
 window.guideWholesale=()=>{
-  window.customWaypoint={x:2610,y:735,name:'Vựa rau · Nhà lồng A'};
+  window.customWaypoint={...window.layoutSpots.hallAFront,name:'Vựa rau · Nhà lồng A'};
   $('shop').close();
   toast('Đi theo dấu vàng tới vựa rau.');
 };
